@@ -7,12 +7,39 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        :root { --bg: #0d0d0f; --card: #16161d; --text: #e0e0e0; --accent: #7289da; --warning: #f1c40f; --discord-blue: #5865F2; --discord-green: #2ecc71; }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
-        .card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid #2d2d3d; text-align: center; }
+        :root { --bg: #0d0d0f; --card: rgba(22, 22, 29, 0.9); --text: #e0e0e0; --accent: #7289da; --warning: #f1c40f; --discord-blue: #5865F2; --discord-green: #2ecc71; }
+        
+        body { 
+            /* ADICIONE O LINK DA SUA IMAGEM ENTRE AS ASPAS ABAIXO */
+            background: url('COLOQUE_O_LINK_DA_SUA_FOTO_AQUI') no-repeat center center fixed; 
+            background-size: cover;
+            color: var(--text); 
+            font-family: 'Segoe UI', sans-serif; 
+            margin: 0; 
+            padding: 15px; 
+        }
+
+        .card { 
+            background: var(--card); 
+            backdrop-filter: blur(5px); /* Efeito de vidro para ver o fundo levemente */
+            border-radius: 12px; 
+            padding: 20px; 
+            margin-bottom: 15px; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            text-align: center; 
+        }
+
+        .main-title {
+            font-size: 1.4rem;
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px #000;
+        }
+
         .avatar { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; margin-right: 12px; }
         .player-info { display: flex; align-items: center; }
-        .aviso-regras { background: rgba(241, 196, 15, 0.1); border: 1px solid var(--warning); color: var(--warning); padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; text-align: left; line-height: 1.4; }
+        .aviso-regras { background: rgba(241, 196, 15, 0.15); border: 1px solid var(--warning); color: var(--warning); padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; text-align: left; line-height: 1.4; }
         .btn-discord { display: block; color: white; text-decoration: none; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; margin-top: 10px; text-align: center; }
         .bg-blue { background: var(--discord-blue); }
         .bg-green { background: var(--discord-green); }
@@ -28,12 +55,13 @@
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .player-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #2d2d3d; }
         .in-combat { color: #ff4757; font-weight: bold; animation: blink 1.5s infinite; }
-        input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #333; background: #000; color: white; margin-bottom: 10px; box-sizing: border-box; }
+        input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #333; background: rgba(0,0,0,0.7); color: white; margin-bottom: 10px; box-sizing: border-box; }
     </style>
 </head>
 <body>
-    <h2 style="text-align: center; color: var(--accent);">DUNGEON HUNTERS</h2>
     
+    <div class="main-title">₊˚⊹ ⚔ ꒱ 𝕯𝖚𝖓𝖌𝖊𝖔𝖓 𝕳𝖚𝖓𝖙𝖊𝖗𝖘 ─ 𝕽𝕻</div>
+
     <div class="card">
         <input type="text" id="userName" placeholder="Nome do seu Personagem">
         <input type="text" id="userPhoto" placeholder="Link da Foto do Personagem">
@@ -50,13 +78,12 @@
         <div id="statusContainer" style="display:none;">
             <div class="aviso-regras">
                 <strong>⚠️ REGRAS DE EXPLORAÇÃO:</strong>
-                <br>• Você deve fazer a ação no canal do andar em que parou no site.
+                <br>• Faça a ação no canal do andar em que parou.
                 <br>• Respeite as regras: não suba de uma vez!
-                <br>• Ao sair do Discord, clique em <b>SAIR DA DUNGEON</b> abaixo.
+                <br>• Saia do site ao sair do Discord.
                 <a href="https://discord.com/channels/1311665787798294558/1318049727715213323" target="_blank" class="btn-discord bg-green">📍 Ir para os Canais dos Andares</a>
             </div>
             <div id="floorNum" class="floor-display">1</div>
-            <div style="font-size: 0.9rem; color: #888;">ANDAR ATUAL</div>
             <div class="btn-row">
                 <button class="btn btn-down" onclick="changeFloor(-1)">▼</button>
                 <button class="btn btn-up" onclick="changeFloor(1)">▲</button>
@@ -72,6 +99,7 @@
     </div>
 
     <script>
+        // O código do script permanece o mesmo que corrigimos anteriormente
         const firebaseConfig = {
             apiKey: "AIzaSyAsq9HAbLMReGnDX9jfRnChPF-R0f0rDfA",
             authDomain: "dungeon-hunters-15a90.firebaseapp.com",
@@ -98,12 +126,7 @@
         function toggleDungeon(entering) {
             const name = document.getElementById('userName').value.trim();
             const photo = document.getElementById('userPhoto').value.trim() || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-            
-            if(!name) {
-                alert("Digite o nome do seu personagem!");
-                return;
-            }
-            
+            if(!name) return alert("Digite o nome do seu personagem!");
             const ref = db.ref('players/' + name);
             if(entering) {
                 ref.update({ name: name, photo: photo, floor: 1, online: true, combat: false }).then(() => {
