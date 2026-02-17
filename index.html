@@ -7,34 +7,23 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        :root { --bg: #0d0d0f; --card: #16161d; --text: #e0e0e0; --accent: #7289da; --warning: #f1c40f; --discord-blue: #5865F2; --discord-green: #2ecc71; }
+        :root { --bg: #0d0d0f; --card: #16161d; --text: #e0e0e0; --accent: #7289da; --warning: #f1c40f; }
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
         .card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid #2d2d3d; text-align: center; }
         .avatar { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; margin-right: 12px; }
         .player-info { display: flex; align-items: center; }
-        .aviso-regras { background: rgba(241, 196, 15, 0.1); border: 1px solid var(--warning); color: var(--warning); padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.8rem; text-align: left; }
-        
-        /* Ranks */
-        .rank-master { color: #e74c3c; font-weight: 900; text-shadow: 0 0 8px rgba(231, 76, 60, 0.6); }
-        .rank-cobre { color: #e67e22; }
-
         .floor-display { font-size: 3.5rem; font-weight: bold; color: #2ecc71; margin: 5px 0; }
-        .btn-row { display: flex; gap: 10px; margin-top: 10px; }
-        .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; }
-        
-        .btn-up { background: #2ecc71; } .btn-down { background: #e74c3c; }
+        .btn { padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; }
+        .btn-up { background: #2ecc71; flex: 1; } .btn-down { background: #e74c3c; flex: 1; }
         .btn-combat { background: #f39c12; width: 100%; margin-top: 10px; }
         .btn-help { background: #ff4757; width: 100%; margin-top: 10px; }
         .btn-group { background: #6c5ce7; width: 100%; margin-top: 10px; }
         .btn-exit { background: #444; width: 100%; margin-top: 15px; }
-
-        input, select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #333; background: #000; color: white; margin-bottom: 8px; box-sizing: border-box; }
-        
+        input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #333; background: #000; color: white; margin-bottom: 8px; box-sizing: border-box; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .name-normal { color: #2ecc71; font-weight: bold; }
         .name-combat { color: #f39c12; font-weight: bold; }
         .name-help { color: #ff4757; font-weight: bold; animation: blink 0.8s infinite; }
-        
         .group-tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; margin-left: 5px; font-weight: bold; color: white; }
         .player-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #2d2d3d; }
     </style>
@@ -49,14 +38,11 @@
     </div>
 
     <div class="card" id="statusContainer" style="display:none;">
-        <div class="aviso-regras">⚠️ Respeite os canais do Discord ao mudar o andar!</div>
-        
         <div id="groupBadge" style="display:none; color: #6c5ce7; font-weight: bold; margin-bottom: 5px;"></div>
         <div id="floorNum" class="floor-display">1</div>
-        <div style="font-size: 0.8rem; color: #888; margin-bottom: 10px;">ANDAR ATUAL</div>
-
+        
         <div id="controlPanel">
-            <div class="btn-row">
+            <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn btn-down" onclick="changeFloor(-1)">▼</button>
                 <button class="btn btn-up" onclick="changeFloor(1)">▲</button>
             </div>
@@ -66,13 +52,14 @@
         <button id="combatBtn" class="btn btn-combat" onclick="toggleStatus('combat')">ENTRAR EM COMBATE</button>
         <button id="helpBtn" class="btn btn-help" onclick="toggleStatus('help')">PEDIR AJUDA (!)</button>
         
-        <div id="groupManagement" style="border-top: 1px solid #333; margin-top: 15px; padding-top: 15px;">
-            <input type="text" id="inviteName" placeholder="Nome do Jogador">
-            <input type="text" id="groupName" placeholder="Nome do Grupo (Ex: Lobos)">
-            <label style="font-size: 0.7rem;">Cor da Tag:</label>
-            <input type="color" id="groupColor" value="#6c5ce7" style="height: 30px; padding: 2px;">
-            <button class="btn btn-group" onclick="sendInvite()">CONVIDAR PARA GRUPO</button>
-            <button id="leaveGroupBtn" class="btn" style="background:#444; width:100%; margin-top:5px; display:none;" onclick="leaveGroup()">SAIR DO GRUPO</button>
+        <div id="groupSection" style="border-top: 1px solid #333; margin-top: 15px; padding-top: 15px;">
+            <div id="createGroupForm">
+                <input type="text" id="inviteName" placeholder="Convidar Jogador">
+                <input type="text" id="groupName" placeholder="Nome do Grupo">
+                <input type="color" id="groupColor" value="#6c5ce7" style="height:35px;">
+                <button class="btn btn-group" onclick="sendInvite()">CONVIDAR</button>
+            </div>
+            <button id="leaveGroupBtn" class="btn" style="background:#444; width:100%; display:none;" onclick="leaveGroup()">SAIR DO GRUPO</button>
         </div>
 
         <button class="btn btn-exit" onclick="toggleDungeon(false)">SAIR DA DUNGEON</button>
@@ -80,7 +67,7 @@
 
     <div class="card">
         <h3>📍 Mapa da Dungeon</h3>
-        <div id="globalList">Buscando aventureiros...</div>
+        <div id="globalList"></div>
     </div>
 
     <script>
@@ -101,7 +88,6 @@
             myName = document.getElementById('userName').value.trim();
             const photo = document.getElementById('userPhoto').value.trim() || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
             if(!myName) return alert("Digite o nome!");
-
             if(entering) {
                 db.ref('players/' + myName).update({ name: myName, photo: photo, floor: 1, online: true, combat: false, help: false, groupID: "", leader: false });
                 document.getElementById('loginCard').style.display = 'none';
@@ -114,68 +100,71 @@
         }
 
         function startListeners() {
-            // Monitora Convites
+            // Ouvinte de Convites
             db.ref('players/' + myName + '/inviteFrom').on('value', snap => {
-                const inviter = snap.val();
-                if(inviter) {
-                    if(confirm(`Aceitar pedido de grupo de ${inviter}?`)) {
-                        const gID = "grp_" + inviter;
-                        db.ref('players/' + myName).update({ groupID: gID, leader: false, inviteFrom: null });
-                    } else {
-                        db.ref('players/' + myName).update({ inviteFrom: null });
-                    }
+                const inviteData = snap.val();
+                if(inviteData) {
+                    if(confirm(`Aceitar convite de ${inviteData.sender} para o grupo ${inviteData.gName}?`)) {
+                        db.ref('players/' + myName).update({ 
+                            groupID: "grp_" + inviteData.sender, 
+                            leader: false, 
+                            groupName: inviteData.gName, 
+                            groupColor: inviteData.gColor,
+                            inviteFrom: null 
+                        });
+                    } else { db.ref('players/' + myName).update({ inviteFrom: null }); }
                 }
             });
 
-            // Monitora Status Próprio
+            // Ouvinte de Status
             db.ref('players/' + myName).on('value', snap => {
-                const p = snap.val();
-                if(!p) return;
+                const p = snap.val(); if(!p) return;
                 document.getElementById('floorNum').innerText = p.floor;
-                
-                // Botões de Status
                 document.getElementById('combatBtn').innerText = p.combat ? "SAIR DE COMBATE" : "ENTRAR EM COMBATE";
                 document.getElementById('helpBtn').innerText = p.help ? "CANCELAR AJUDA" : "PEDIR AJUDA (!)";
                 
-                // Bloqueio de Grupo
-                const isMember = p.groupID && !p.leader;
-                document.getElementById('controlPanel').style.display = isMember ? 'none' : 'block';
-                document.getElementById('memberNotice').style.display = isMember ? 'block' : 'none';
-                document.getElementById('leaveGroupBtn').style.display = p.groupID ? 'block' : 'none';
-                document.getElementById('groupBadge').style.display = p.groupID ? 'block' : 'none';
-                document.getElementById('groupBadge').innerText = p.leader ? "👑 LÍDER" : "🛡️ MEMBRO";
+                const inGroup = !!p.groupID;
+                const isLeader = p.leader;
+                document.getElementById('createGroupForm').style.display = inGroup ? 'none' : 'block';
+                document.getElementById('leaveGroupBtn').style.display = inGroup ? 'block' : 'none';
+                document.getElementById('controlPanel').style.display = (inGroup && !isLeader) ? 'none' : 'block';
+                document.getElementById('memberNotice').style.display = (inGroup && !isLeader) ? 'block' : 'none';
+                document.getElementById('groupBadge').style.display = inGroup ? 'block' : 'none';
+                document.getElementById('groupBadge').innerText = isLeader ? "👑 LÍDER" : "🛡️ EM GRUPO";
             });
         }
 
         function changeFloor(val) {
             db.ref('players/' + myName).once('value', snap => {
                 const p = snap.val();
-                let nFloor = (p.floor || 1) + val;
-                if(nFloor < 1) nFloor = 1;
-
+                let nFloor = Math.max(1, (p.floor || 1) + val);
                 if(p.leader && p.groupID) {
                     db.ref('players').once('value', all => {
                         all.forEach(c => { if(c.val().groupID === p.groupID) db.ref('players/' + c.key).update({ floor: nFloor }); });
                     });
-                } else {
-                    db.ref('players/' + myName).update({ floor: nFloor });
-                }
+                } else { db.ref('players/' + myName).update({ floor: nFloor }); }
             });
         }
 
         function toggleStatus(type) {
-            const ref = db.ref('players/' + myName + '/' + type);
-            ref.once('value', snap => ref.set(!snap.val()));
+            db.ref('players/' + myName).once('value', snap => {
+                const p = snap.val();
+                const newState = !p[type];
+                if(p.leader && p.groupID && confirm(`Mudar status de TODO o grupo para ${type}?`)) {
+                    db.ref('players').once('value', all => {
+                        all.forEach(c => { if(c.val().groupID === p.groupID) db.ref('players/' + c.key).update({ [type]: newState }); });
+                    });
+                } else { db.ref('players/' + myName).update({ [type]: newState }); }
+            });
         }
 
         function sendInvite() {
             const target = document.getElementById('inviteName').value.trim();
             const gName = document.getElementById('groupName').value.trim() || "Grupo";
             const gColor = document.getElementById('groupColor').value;
-            if(!target || target === myName) return alert("Nome inválido!");
-
+            if(!target || target === myName) return alert("Alvo inválido!");
             db.ref('players/' + myName).update({ groupID: "grp_" + myName, leader: true, groupName: gName, groupColor: gColor });
-            db.ref('players/' + target).update({ inviteFrom: myName });
+            db.ref('players/' + target).update({ inviteFrom: { sender: myName, gName: gName, gColor: gColor } });
             alert("Convite enviado!");
         }
 
@@ -183,34 +172,25 @@
             db.ref('players/' + myName).update({ groupID: "", leader: false, groupName: "", groupColor: "" });
         }
 
-        // Renderização do Mapa Global
         db.ref('players').on('value', snap => {
             let html = "";
             snap.forEach(child => {
                 const p = child.val();
                 if(p.online) {
-                    let nClass = "name-normal";
-                    let pref = "";
-                    if(p.combat) nClass = "name-combat";
-                    if(p.help) { nClass = "name-help"; pref = "⚠️ "; }
-
-                    let gTag = p.groupID ? `<span class="group-tag" style="background:${p.groupColor || '#6c5ce7'}">${p.groupName || 'Grupo'}</span>` : "";
-                    
+                    let nClass = p.help ? "name-help" : (p.combat ? "name-combat" : "name-normal");
+                    let gTag = p.groupID ? `<span class="group-tag" style="background:${p.groupColor}">${p.groupName}</span>` : "";
                     html += `<div class="player-item">
                         <div class="player-info">
                             <img src="${p.photo}" class="avatar">
-                            <div style="text-align:left">
-                                <span class="${nClass}">${pref}${p.name}</span>${gTag}<br>
-                                <small class="rank-${(p.rank||'cobre').toLowerCase()}">${p.rank || 'Cobre'}</small>
-                            </div>
+                            <div><span class="${nClass}">${p.help?'⚠️ ':''}${p.name}</span>${gTag}<br>
+                            <small style="color:#aaa">${p.rank || 'Cobre'}</small></div>
                         </div>
                         <div style="font-weight:bold; font-size:1.5rem; color:#2ecc71;">${p.floor}º</div>
                     </div>`;
                 }
             });
-            document.getElementById('globalList').innerHTML = html || "Dungeon vazia...";
+            document.getElementById('globalList').innerHTML = html;
         });
     </script>
 </body>
-        </html>
-    
+</html>
