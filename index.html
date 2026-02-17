@@ -7,11 +7,10 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        :root { --bg: #0d0d0f; --card: #16161d; --text: #e0e0e0; --accent: #7289da; --warning: #f1c40f; }
+        :root { --bg: #0d0d0f; --card: #16161d; --text: #e0e0e0; --accent: #7289da; --warning: #f1c40f; --discord-blue: #5865F2; --discord-green: #2ecc71; }
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
         .card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid #2d2d3d; text-align: center; }
         
-        /* Estilo do Aviso de Regras */
         .aviso-regras { 
             background: rgba(241, 196, 15, 0.1); 
             border: 1px solid var(--warning); 
@@ -23,6 +22,20 @@
             text-align: left;
             line-height: 1.4;
         }
+
+        .btn-discord {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            margin-top: 10px;
+            text-align: center;
+        }
+        .bg-blue { background: var(--discord-blue); }
+        .bg-green { background: var(--discord-green); }
 
         .floor-display { font-size: 3.5rem; font-weight: bold; color: #2ecc71; margin: 10px 0; }
         .btn-row { display: flex; gap: 10px; margin-top: 15px; }
@@ -44,12 +57,26 @@
     <div class="card">
         <input type="text" id="userName" placeholder="Seu Nome no Discord">
         
+        <div id="joinContainer">
+            <div class="aviso-regras" style="text-align: center;">
+                <strong>🚪 ENTRADA DA DUNGEON</strong><br>
+                Primeiro, faça a ação no canal do Discord avisando que vai entrar e, logo em seguida, aperte o botão abaixo.
+            </div>
+            <a href="https://discord.com/channels/1311665787798294558/1318049627324289077" target="_blank" class="btn-discord bg-blue">
+                Ir para o Portão da Dungeon (Discord)
+            </a>
+            <button class="btn btn-toggle" onclick="toggleDungeon(true)">ENTRAR NA DUNGEON (SITE)</button>
+        </div>
+
         <div id="statusContainer" style="display:none;">
             <div class="aviso-regras">
-                <strong>⚠️ LEMBRE-SE:</strong>
-                <br>• Faça as ações no andar em que você parou.
+                <strong>⚠️ REGRAS DE EXPLORAÇÃO:</strong>
+                <br>• Você deve fazer a ação no canal do andar em que parou no site.
                 <br>• Respeite as regras: não suba de uma vez!
-                <br>• Saiu do Discord? Clique em <b>SAIR DA DUNGEON</b> abaixo.
+                <br>• Ao sair do Discord, clique em <b>SAIR DA DUNGEON</b>.
+                <a href="https://discord.com/channels/1311665787798294558/1318049727715213323" target="_blank" class="btn-discord bg-green">
+                    📍 Ir para os Canais dos Andares
+                </a>
             </div>
 
             <div id="floorNum" class="floor-display">1</div>
@@ -59,11 +86,7 @@
                 <button class="btn btn-up" onclick="changeFloor(1)">▲</button>
             </div>
             <button id="combatBtn" class="btn btn-combat" onclick="toggleCombat()">ENTRAR EM COMBATE</button>
-            <button class="btn btn-exit" style="margin-top:10px; width:100%;" onclick="toggleDungeon(false)">SAIR DA DUNGEON</button>
-        </div>
-
-        <div id="joinContainer">
-            <button class="btn btn-toggle" onclick="toggleDungeon(true)">ENTRAR NA DUNGEON</button>
+            <button class="btn btn-exit" style="margin-top:10px; width:100%;" onclick="toggleDungeon(false)">SAIR DA DUNGEON (SITE)</button>
         </div>
     </div>
 
@@ -132,7 +155,7 @@
                     html += `<div class="player-item">
                         <div style="text-align:left"><span class="${p.combat ? 'in-combat' : ''}">${p.name}</span><br>
                         <small style="color:#7289da; text-transform:uppercase;">${p.rank || 'Cobre'}</small></div>
-                        <div style="font-weight:bold; font-size:1.5rem;">${p.floor}º</div>
+                        <div style="font-weight:bold; font-size:1.5rem; color:#2ecc71;">${p.floor}º</div>
                     </div>`;
                 }
             });
@@ -140,5 +163,4 @@
         });
     </script>
 </body>
-    </html>
-    
+</html>
