@@ -25,8 +25,9 @@
         .btn { flex: 1; padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 1.1rem; color: white; cursor: pointer; }
         .btn-up { background: #2ecc71; } .btn-down { background: #e74c3c; }
         
-        /* Botões Especiais */
-        .btn-combat { background: #f39c12; margin-top: 10px; width: 100%; }
+        /* Botões de Ação */
+        .btn-combat { background: #444; margin-top: 10px; width: 100%; border: 2px solid transparent; }
+        .btn-combat.active { background: #f39c12; border-color: white; color: #000; }
         .btn-help { background: #444; margin-top: 10px; width: 100%; border: 2px solid transparent; }
         .btn-help.active { background: #ff0000; border-color: white; animation: blink 1s infinite; }
         .btn-toggle { background: #7289da; width: 100%; margin-top: 10px; }
@@ -34,9 +35,10 @@
 
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         
-        /* Estilos dos nomes no Mapa */
-        .player-name-normal { color: #2ecc71; font-weight: bold; } /* Nome Verde */
-        .need-help { color: #ff4757; font-weight: bold; animation: blink 0.8s infinite; } /* Nome Piscando Vermelho */
+        /* Cores dos Nomes no Mapa */
+        .name-normal { color: #2ecc71; font-weight: bold; } /* Verde */
+        .name-combat { color: #f39c12; font-weight: bold; } /* Amarelo */
+        .name-help { color: #ff4757; font-weight: bold; animation: blink 0.8s infinite; } /* Vermelho Piscando */
         
         .player-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #2d2d3d; }
         input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #333; background: #000; color: white; margin-bottom: 10px; box-sizing: border-box; }
@@ -54,14 +56,11 @@
                 <strong>🚪 ENTRADA DA DUNGEON</strong><br>
                 Ação no Discord primeiro, depois clique no botão abaixo.
             </div>
-            <a href="https://discord.com/channels/1311665787798294558/1318049627324289077" target="_blank" class="btn-discord bg-blue">Ir para o Portão da Dungeon (Discord)</a>
+            <a href="https://discord.com/channels/1311665787798294558/1318049627324289077" target="_blank" class="btn-discord bg-blue">Ir para o Portão (Discord)</a>
             <button class="btn btn-toggle" onclick="toggleDungeon(true)">ENTRAR NA DUNGEON</button>
         </div>
 
         <div id="statusContainer" style="display:none;">
-            <div class="aviso-regras">
-                <strong>⚠️ REGRAS:</strong> Atualize o andar após a ação no Discord.
-            </div>
             <div id="floorNum" class="floor-display">1</div>
             <div style="font-size: 0.9rem; color: #888;">ANDAR ATUAL</div>
             <div class="btn-row">
@@ -69,7 +68,7 @@
                 <button class="btn btn-up" onclick="changeFloor(1)">▲</button>
             </div>
             <button id="helpBtn" class="btn btn-help" onclick="toggleHelp()">PEDIR AJUDA (!)</button>
-            <button id="combatBtn" class="btn btn-combat" onclick="toggleCombat()">EM COMBATE</button>
+            <button id="combatBtn" class="btn btn-combat" onclick="toggleCombat()">ENTRAR EM COMBATE</button>
             <button class="btn btn-exit" style="margin-top:10px; width:100%;" onclick="toggleDungeon(false)">SAIR DA DUNGEON (SITE)</button>
         </div>
     </div>
@@ -92,20 +91,23 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        function monitorarStatus(name) {
-            // Monitora Combate
+        function monitorarStatusLocal(name) {
+            // Monitora Combate para mudar o BOTÃO
             db.ref('players/' + name + '/combat').on('value', snap => {
-                const isCombat = snap.val() || false;
+                const val = snap.val() || false;
                 const btn = document.getElementById('combatBtn');
-                if (btn) btn.style.border = isCombat ? "2px solid white" : "none";
+                if (btn) {
+                    btn.innerText = val ? "SAIR DE COMBATE" : "ENTRAR EM COMBATE";
+                    btn.className = val ? "btn btn-combat active" : "btn btn-combat";
+                }
             });
-            // Monitora Pedido de Ajuda
+            // Monitora Ajuda para mudar o BOTÃO
             db.ref('players/' + name + '/help').on('value', snap => {
-                const isHelping = snap.val() || false;
+                const val = snap.val() || false;
                 const btn = document.getElementById('helpBtn');
                 if (btn) {
-                    btn.innerText = isHelping ? "CANCELAR PEDIDO DE AJUDA" : "PEDIR AJUDA (!)";
-                    btn.className = isHelping ? "btn btn-help active" : "btn btn-help";
+                    btn.innerText = val ? "CANCELAR PEDIDO DE AJUDA" : "PEDIR AJUDA (!)";
+                    btn.className = val ? "btn btn-help active" : "btn btn-help";
                 }
             });
         }
@@ -120,13 +122,11 @@
                 ref.update({ name: name, photo: photo, floor: 1, online: true, combat: false, help: false }).then(() => {
                     document.getElementById('statusContainer').style.display = 'block';
                     document.getElementById('joinContainer').style.display = 'none';
-                    monitorarStatus(name);
+                    monitorarStatusLocal(name);
                 });
             } else {
                 ref.update({ online: false, combat: false, help: false }).then(() => {
-                    document.getElementById('statusContainer').style.display = 'none';
-                    document.getElementById('joinContainer').style.display = 'block';
-                    db.ref('players/' + name).off();
+                    location.reload(); // Recarrega para limpar tudo
                 });
             }
         }
@@ -158,18 +158,25 @@
             let html = "";
             snap.forEach(child => {
                 const p = child.val();
-                if(p.online && p.name) {
+                if(p.online) {
                     let rankClass = "rank-" + (p.rank || "cobre").toLowerCase();
                     let imgUrl = p.photo || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
                     
-                    // Define se o nome está em alerta ou normal
-                    let nameDisplay = p.help ? `<span class="need-help">⚠️ ! ${p.name} ! ⚠️</span>` : `<span class="player-name-normal">${p.name}</span>`;
+                    // Lógica de Cor do Nome
+                    let nameClass = "name-normal";
+                    let prefix = "";
+                    
+                    if (p.combat) nameClass = "name-combat";
+                    if (p.help) {
+                        nameClass = "name-help";
+                        prefix = "⚠️ ";
+                    }
                     
                     html += `<div class="player-item">
                         <div class="player-info">
                             <img src="${imgUrl}" class="avatar">
                             <div style="text-align:left">
-                                ${nameDisplay}<br>
+                                <span class="${nameClass}">${prefix}${p.name}</span><br>
                                 <small class="${rankClass}">${p.rank || 'Cobre'}</small>
                             </div>
                         </div>
@@ -181,5 +188,4 @@
         });
     </script>
 </body>
-                </html>
-                
+</html>
