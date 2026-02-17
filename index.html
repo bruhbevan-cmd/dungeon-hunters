@@ -16,18 +16,29 @@
         .btn-discord { display: block; color: white; text-decoration: none; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; margin-top: 10px; text-align: center; }
         .bg-blue { background: var(--discord-blue); }
         .bg-green { background: var(--discord-green); }
+        
+        /* Ranks */
         .rank-cobre { color: #e67e22; } .rank-ferro { color: #546e7a; } .rank-prata { color: #95a5a6; } .rank-ouro { color: #f1c40f; } .rank-platina { color: #6dd9f4; } .rank-mithril { color: #2ecc71; } .rank-orichalcum { color: #9b59b6; } .rank-adamantite { color: #3498db; } .rank-master { color: #e74c3c; font-weight: 900; text-shadow: 0 0 8px rgba(231, 76, 60, 0.6); }
+
         .floor-display { font-size: 3.5rem; font-weight: bold; color: #2ecc71; margin: 10px 0; }
         .btn-row { display: flex; gap: 10px; margin-top: 15px; }
         .btn { flex: 1; padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 1.1rem; color: white; cursor: pointer; }
         .btn-up { background: #2ecc71; } .btn-down { background: #e74c3c; }
+        
+        /* Botões Especiais */
         .btn-combat { background: #f39c12; margin-top: 10px; width: 100%; }
-        .btn-combat.active { background: #ff0000; animation: blink 1s infinite; }
+        .btn-help { background: #444; margin-top: 10px; width: 100%; border: 2px solid transparent; }
+        .btn-help.active { background: #ff0000; border-color: white; animation: blink 1s infinite; }
         .btn-toggle { background: #7289da; width: 100%; margin-top: 10px; }
         .btn-exit { background: #444; }
+
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        /* Estilos dos nomes no Mapa */
+        .player-name-normal { color: #2ecc71; font-weight: bold; } /* Nome Verde */
+        .need-help { color: #ff4757; font-weight: bold; animation: blink 0.8s infinite; } /* Nome Piscando Vermelho */
+        
         .player-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #2d2d3d; }
-        .in-combat { color: #ff4757; font-weight: bold; animation: blink 1.5s infinite; }
         input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #333; background: #000; color: white; margin-bottom: 10px; box-sizing: border-box; }
     </style>
 </head>
@@ -49,11 +60,7 @@
 
         <div id="statusContainer" style="display:none;">
             <div class="aviso-regras">
-                <strong>⚠️ REGRAS DE EXPLORAÇÃO:</strong>
-                <br>• Você deve fazer a ação no canal do andar em que parou no site.
-                <br>• Respeite as regras: não suba de uma vez!
-                <br>• Ao sair do Discord, clique em <b>SAIR DA DUNGEON</b> abaixo.
-                <a href="https://discord.com/channels/1311665787798294558/1318049727715213323" target="_blank" class="btn-discord bg-green">📍 Ir para os Canais dos Andares</a>
+                <strong>⚠️ REGRAS:</strong> Atualize o andar após a ação no Discord.
             </div>
             <div id="floorNum" class="floor-display">1</div>
             <div style="font-size: 0.9rem; color: #888;">ANDAR ATUAL</div>
@@ -61,7 +68,8 @@
                 <button class="btn btn-down" onclick="changeFloor(-1)">▼</button>
                 <button class="btn btn-up" onclick="changeFloor(1)">▲</button>
             </div>
-            <button id="combatBtn" class="btn btn-combat" onclick="toggleCombat()">ENTRAR EM COMBATE</button>
+            <button id="helpBtn" class="btn btn-help" onclick="toggleHelp()">PEDIR AJUDA (!)</button>
+            <button id="combatBtn" class="btn btn-combat" onclick="toggleCombat()">EM COMBATE</button>
             <button class="btn btn-exit" style="margin-top:10px; width:100%;" onclick="toggleDungeon(false)">SAIR DA DUNGEON (SITE)</button>
         </div>
     </div>
@@ -84,13 +92,20 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        function monitorarCombate(name) {
+        function monitorarStatus(name) {
+            // Monitora Combate
             db.ref('players/' + name + '/combat').on('value', snap => {
                 const isCombat = snap.val() || false;
                 const btn = document.getElementById('combatBtn');
+                if (btn) btn.style.border = isCombat ? "2px solid white" : "none";
+            });
+            // Monitora Pedido de Ajuda
+            db.ref('players/' + name + '/help').on('value', snap => {
+                const isHelping = snap.val() || false;
+                const btn = document.getElementById('helpBtn');
                 if (btn) {
-                    btn.innerText = isCombat ? "SAIR DE COMBATE" : "ENTRAR EM COMBATE";
-                    btn.className = isCombat ? "btn btn-combat active" : "btn btn-combat";
+                    btn.innerText = isHelping ? "CANCELAR PEDIDO DE AJUDA" : "PEDIR AJUDA (!)";
+                    btn.className = isHelping ? "btn btn-help active" : "btn btn-help";
                 }
             });
         }
@@ -98,24 +113,20 @@
         function toggleDungeon(entering) {
             const name = document.getElementById('userName').value.trim();
             const photo = document.getElementById('userPhoto').value.trim() || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-            
-            if(!name) {
-                alert("Digite o nome do seu personagem!");
-                return;
-            }
+            if(!name) return alert("Digite o nome!");
             
             const ref = db.ref('players/' + name);
             if(entering) {
-                ref.update({ name: name, photo: photo, floor: 1, online: true, combat: false }).then(() => {
+                ref.update({ name: name, photo: photo, floor: 1, online: true, combat: false, help: false }).then(() => {
                     document.getElementById('statusContainer').style.display = 'block';
                     document.getElementById('joinContainer').style.display = 'none';
-                    monitorarCombate(name);
+                    monitorarStatus(name);
                 });
             } else {
-                ref.update({ online: false, combat: false }).then(() => {
+                ref.update({ online: false, combat: false, help: false }).then(() => {
                     document.getElementById('statusContainer').style.display = 'none';
                     document.getElementById('joinContainer').style.display = 'block';
-                    db.ref('players/' + name + '/combat').off();
+                    db.ref('players/' + name).off();
                 });
             }
         }
@@ -133,12 +144,14 @@
 
         function toggleCombat() {
             const name = document.getElementById('userName').value.trim();
-            if(!name) return;
             const ref = db.ref('players/' + name + '/combat');
-            ref.once('value', snap => {
-                const estadoAtual = snap.val() || false;
-                ref.set(!estadoAtual);
-            });
+            ref.once('value', snap => ref.set(!snap.val()));
+        }
+
+        function toggleHelp() {
+            const name = document.getElementById('userName').value.trim();
+            const ref = db.ref('players/' + name + '/help');
+            ref.once('value', snap => ref.set(!snap.val()));
         }
 
         db.ref('players').on('value', snap => {
@@ -148,12 +161,16 @@
                 if(p.online && p.name) {
                     let rankClass = "rank-" + (p.rank || "cobre").toLowerCase();
                     let imgUrl = p.photo || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                    
+                    // Define se o nome está em alerta ou normal
+                    let nameDisplay = p.help ? `<span class="need-help">⚠️ ! ${p.name} ! ⚠️</span>` : `<span class="player-name-normal">${p.name}</span>`;
+                    
                     html += `<div class="player-item">
                         <div class="player-info">
                             <img src="${imgUrl}" class="avatar">
                             <div style="text-align:left">
-                                <span class="${p.combat ? 'in-combat' : ''}">${p.name}</span><br>
-                                <small class="${rankClass}" style="text-transform:uppercase; font-weight:bold;">${p.rank || 'Cobre'}</small>
+                                ${nameDisplay}<br>
+                                <small class="${rankClass}">${p.rank || 'Cobre'}</small>
                             </div>
                         </div>
                         <div style="font-weight:bold; font-size:1.5rem; color:#2ecc71;">${p.floor}º</div>
@@ -164,4 +181,5 @@
         });
     </script>
 </body>
-</html>
+                </html>
+                
