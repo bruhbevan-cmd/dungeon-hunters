@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dungeon Hunters - App</title>
+    <title>Dungeon Hunters - RPG</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
@@ -12,54 +12,70 @@
         .card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid #2d2d3d; text-align: center; }
         .avatar { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; margin-right: 12px; }
         .player-info { display: flex; align-items: center; }
-        .rank-cobre { color: #e67e22; } .rank-master { color: #e74c3c; font-weight: 900; }
-        .floor-display { font-size: 3.5rem; font-weight: bold; color: #2ecc71; margin: 10px 0; }
-        .btn-row { display: flex; gap: 10px; margin-top: 15px; }
-        .btn { flex: 1; padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 1.1rem; color: white; cursor: pointer; }
+        .aviso-regras { background: rgba(241, 196, 15, 0.1); border: 1px solid var(--warning); color: var(--warning); padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.8rem; text-align: left; }
+        
+        /* Ranks */
+        .rank-master { color: #e74c3c; font-weight: 900; text-shadow: 0 0 8px rgba(231, 76, 60, 0.6); }
+        .rank-cobre { color: #e67e22; }
+
+        .floor-display { font-size: 3.5rem; font-weight: bold; color: #2ecc71; margin: 5px 0; }
+        .btn-row { display: flex; gap: 10px; margin-top: 10px; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; }
+        
         .btn-up { background: #2ecc71; } .btn-down { background: #e74c3c; }
-        .btn-combat { background: #444; margin-top: 10px; width: 100%; }
-        .btn-combat.active { background: #f39c12; color: #000; }
+        .btn-combat { background: #f39c12; width: 100%; margin-top: 10px; }
+        .btn-help { background: #ff4757; width: 100%; margin-top: 10px; }
         .btn-group { background: #6c5ce7; width: 100%; margin-top: 10px; }
-        .btn-exit { background: #444; margin-top: 10px; width: 100%; }
-        .group-tag { font-size: 0.7rem; background: #6c5ce7; color: white; padding: 2px 6px; border-radius: 4px; margin-left: 5px; }
-        input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #333; background: #000; color: white; margin-bottom: 10px; box-sizing: border-box; }
-        .player-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #2d2d3d; }
+        .btn-exit { background: #444; width: 100%; margin-top: 15px; }
+
+        input, select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #333; background: #000; color: white; margin-bottom: 8px; box-sizing: border-box; }
+        
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .name-normal { color: #2ecc71; font-weight: bold; }
         .name-combat { color: #f39c12; font-weight: bold; }
+        .name-help { color: #ff4757; font-weight: bold; animation: blink 0.8s infinite; }
+        
+        .group-tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; margin-left: 5px; font-weight: bold; color: white; }
+        .player-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #2d2d3d; }
     </style>
 </head>
 <body>
-    <h2 style="text-align: center; color: var(--accent);">DUNGEON HUNTERS</h2>
+    <h2 style="text-align: center; color: var(--accent);">₊˚⊹ ⚔ ꒱ DUNGEON HUNTERS</h2>
     
-    <div class="card">
-        <input type="text" id="userName" placeholder="Seu Personagem">
+    <div class="card" id="loginCard">
+        <input type="text" id="userName" placeholder="Nome do Personagem">
         <input type="text" id="userPhoto" placeholder="Link da Foto">
+        <button class="btn btn-up" style="width:100%" onclick="toggleDungeon(true)">ENTRAR NA DUNGEON</button>
+    </div>
+
+    <div class="card" id="statusContainer" style="display:none;">
+        <div class="aviso-regras">⚠️ Respeite os canais do Discord ao mudar o andar!</div>
         
-        <div id="joinContainer">
-            <button class="btn btn-up" style="width:100%" onclick="toggleDungeon(true)">ENTRAR NA DUNGEON</button>
+        <div id="groupBadge" style="display:none; color: #6c5ce7; font-weight: bold; margin-bottom: 5px;"></div>
+        <div id="floorNum" class="floor-display">1</div>
+        <div style="font-size: 0.8rem; color: #888; margin-bottom: 10px;">ANDAR ATUAL</div>
+
+        <div id="controlPanel">
+            <div class="btn-row">
+                <button class="btn btn-down" onclick="changeFloor(-1)">▼</button>
+                <button class="btn btn-up" onclick="changeFloor(1)">▲</button>
+            </div>
+        </div>
+        <div id="memberNotice" style="display:none; color: #6c5ce7; font-size: 0.9rem; margin: 10px 0;">🔒 Seguindo o Líder</div>
+
+        <button id="combatBtn" class="btn btn-combat" onclick="toggleStatus('combat')">ENTRAR EM COMBATE</button>
+        <button id="helpBtn" class="btn btn-help" onclick="toggleStatus('help')">PEDIR AJUDA (!)</button>
+        
+        <div id="groupManagement" style="border-top: 1px solid #333; margin-top: 15px; padding-top: 15px;">
+            <input type="text" id="inviteName" placeholder="Nome do Jogador">
+            <input type="text" id="groupName" placeholder="Nome do Grupo (Ex: Lobos)">
+            <label style="font-size: 0.7rem;">Cor da Tag:</label>
+            <input type="color" id="groupColor" value="#6c5ce7" style="height: 30px; padding: 2px;">
+            <button class="btn btn-group" onclick="sendInvite()">CONVIDAR PARA GRUPO</button>
+            <button id="leaveGroupBtn" class="btn" style="background:#444; width:100%; margin-top:5px; display:none;" onclick="leaveGroup()">SAIR DO GRUPO</button>
         </div>
 
-        <div id="statusContainer" style="display:none;">
-            <div id="groupInfo" style="margin-bottom: 10px; color: #6c5ce7; font-weight: bold; display: none;">LÍDER DE GRUPO</div>
-            <div id="floorNum" class="floor-display">1</div>
-            <div id="controlButtons">
-                <div class="btn-row">
-                    <button class="btn btn-down" onclick="changeFloor(-1)">▼</button>
-                    <button class="btn btn-up" onclick="changeFloor(1)">▲</button>
-                </div>
-            </div>
-            <div id="followingMsg" style="display:none; color: #aaa; margin: 10px 0;">Seguindo o Líder...</div>
-            
-            <button id="combatBtn" class="btn btn-combat" onclick="toggleCombat()">ENTRAR EM COMBATE</button>
-            
-            <div id="groupArea" style="border-top: 1px solid #333; margin-top: 15px; padding-top: 10px;">
-                <input type="text" id="inviteName" placeholder="Nome do parceiro para convidar">
-                <button class="btn btn-group" onclick="createGroup()">CONVIDAR PARA GRUPO</button>
-                <button id="leaveGroupBtn" class="btn" style="background:#555; display:none; width:100%; margin-top:5px;" onclick="leaveGroup()">SAIR DO GRUPO</button>
-            </div>
-
-            <button class="btn btn-exit" onclick="toggleDungeon(false)">SAIR DA DUNGEON</button>
-        </div>
+        <button class="btn btn-exit" onclick="toggleDungeon(false)">SAIR DA DUNGEON</button>
     </div>
 
     <div class="card">
@@ -79,115 +95,122 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-
         let myName = "";
-
-        function monitorarStatus(name) {
-            db.ref('players/' + name).on('value', snap => {
-                const data = snap.val();
-                if(!data) return;
-                
-                document.getElementById('floorNum').innerText = data.floor;
-                
-                // Lógica de Grupo
-                if(data.leader) {
-                    document.getElementById('groupInfo').style.display = 'block';
-                    document.getElementById('groupInfo').innerText = "VOCÊ É O LÍDER";
-                    document.getElementById('controlButtons').style.display = 'block';
-                    document.getElementById('followingMsg').style.display = 'none';
-                    document.getElementById('leaveGroupBtn').style.display = 'block';
-                } else if (data.groupID) {
-                    document.getElementById('groupInfo').style.display = 'block';
-                    document.getElementById('groupInfo').innerText = "EM GRUPO (MEMBRO)";
-                    document.getElementById('controlButtons').style.display = 'none';
-                    document.getElementById('followingMsg').style.display = 'block';
-                    document.getElementById('leaveGroupBtn').style.display = 'block';
-                } else {
-                    document.getElementById('groupInfo').style.display = 'none';
-                    document.getElementById('controlButtons').style.display = 'block';
-                    document.getElementById('followingMsg').style.display = 'none';
-                    document.getElementById('leaveGroupBtn').style.display = 'none';
-                }
-            });
-        }
 
         function toggleDungeon(entering) {
             myName = document.getElementById('userName').value.trim();
             const photo = document.getElementById('userPhoto').value.trim() || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-            if(!myName) return alert("Digite seu nome!");
+            if(!myName) return alert("Digite o nome!");
 
             if(entering) {
-                db.ref('players/' + myName).update({ name: myName, photo: photo, floor: 1, online: true, combat: false, leader: false, groupID: "" });
+                db.ref('players/' + myName).update({ name: myName, photo: photo, floor: 1, online: true, combat: false, help: false, groupID: "", leader: false });
+                document.getElementById('loginCard').style.display = 'none';
                 document.getElementById('statusContainer').style.display = 'block';
-                document.getElementById('joinContainer').style.display = 'none';
-                monitorarStatus(myName);
+                startListeners();
             } else {
                 db.ref('players/' + myName).update({ online: false, groupID: "", leader: false });
                 location.reload();
             }
         }
 
+        function startListeners() {
+            // Monitora Convites
+            db.ref('players/' + myName + '/inviteFrom').on('value', snap => {
+                const inviter = snap.val();
+                if(inviter) {
+                    if(confirm(`Aceitar pedido de grupo de ${inviter}?`)) {
+                        const gID = "grp_" + inviter;
+                        db.ref('players/' + myName).update({ groupID: gID, leader: false, inviteFrom: null });
+                    } else {
+                        db.ref('players/' + myName).update({ inviteFrom: null });
+                    }
+                }
+            });
+
+            // Monitora Status Próprio
+            db.ref('players/' + myName).on('value', snap => {
+                const p = snap.val();
+                if(!p) return;
+                document.getElementById('floorNum').innerText = p.floor;
+                
+                // Botões de Status
+                document.getElementById('combatBtn').innerText = p.combat ? "SAIR DE COMBATE" : "ENTRAR EM COMBATE";
+                document.getElementById('helpBtn').innerText = p.help ? "CANCELAR AJUDA" : "PEDIR AJUDA (!)";
+                
+                // Bloqueio de Grupo
+                const isMember = p.groupID && !p.leader;
+                document.getElementById('controlPanel').style.display = isMember ? 'none' : 'block';
+                document.getElementById('memberNotice').style.display = isMember ? 'block' : 'none';
+                document.getElementById('leaveGroupBtn').style.display = p.groupID ? 'block' : 'none';
+                document.getElementById('groupBadge').style.display = p.groupID ? 'block' : 'none';
+                document.getElementById('groupBadge').innerText = p.leader ? "👑 LÍDER" : "🛡️ MEMBRO";
+            });
+        }
+
         function changeFloor(val) {
             db.ref('players/' + myName).once('value', snap => {
-                const data = snap.val();
-                let newFloor = (data.floor || 1) + val;
-                if(newFloor < 1) newFloor = 1;
+                const p = snap.val();
+                let nFloor = (p.floor || 1) + val;
+                if(nFloor < 1) nFloor = 1;
 
-                // Se for líder, atualiza todos do grupo
-                if(data.leader && data.groupID) {
-                    db.ref('players').once('value', allSnap => {
-                        allSnap.forEach(child => {
-                            if(child.val().groupID === data.groupID) {
-                                db.ref('players/' + child.key).update({ floor: newFloor });
-                            }
-                        });
+                if(p.leader && p.groupID) {
+                    db.ref('players').once('value', all => {
+                        all.forEach(c => { if(c.val().groupID === p.groupID) db.ref('players/' + c.key).update({ floor: nFloor }); });
                     });
                 } else {
-                    db.ref('players/' + myName).update({ floor: newFloor });
+                    db.ref('players/' + myName).update({ floor: nFloor });
                 }
             });
         }
 
-        function createGroup() {
-            const partner = document.getElementById('inviteName').value.trim();
-            if(!partner || partner === myName) return alert("Nome do parceiro inválido!");
-            
-            const gID = "grp_" + myName;
-            db.ref('players/' + myName).update({ groupID: gID, leader: true });
-            db.ref('players/' + partner).update({ groupID: gID, leader: false });
-            alert("Grupo formado com " + partner);
-        }
-
-        function leaveGroup() {
-            db.ref('players/' + myName).update({ groupID: "", leader: false });
-        }
-
-        function toggleCombat() {
-            const ref = db.ref('players/' + myName + '/combat');
+        function toggleStatus(type) {
+            const ref = db.ref('players/' + myName + '/' + type);
             ref.once('value', snap => ref.set(!snap.val()));
         }
 
+        function sendInvite() {
+            const target = document.getElementById('inviteName').value.trim();
+            const gName = document.getElementById('groupName').value.trim() || "Grupo";
+            const gColor = document.getElementById('groupColor').value;
+            if(!target || target === myName) return alert("Nome inválido!");
+
+            db.ref('players/' + myName).update({ groupID: "grp_" + myName, leader: true, groupName: gName, groupColor: gColor });
+            db.ref('players/' + target).update({ inviteFrom: myName });
+            alert("Convite enviado!");
+        }
+
+        function leaveGroup() {
+            db.ref('players/' + myName).update({ groupID: "", leader: false, groupName: "", groupColor: "" });
+        }
+
+        // Renderização do Mapa Global
         db.ref('players').on('value', snap => {
             let html = "";
             snap.forEach(child => {
                 const p = child.val();
                 if(p.online) {
-                    let nameClass = p.combat ? "name-combat" : "name-normal";
-                    let groupTag = p.groupID ? `<span class="group-tag">GRUPO</span>` : "";
+                    let nClass = "name-normal";
+                    let pref = "";
+                    if(p.combat) nClass = "name-combat";
+                    if(p.help) { nClass = "name-help"; pref = "⚠️ "; }
+
+                    let gTag = p.groupID ? `<span class="group-tag" style="background:${p.groupColor || '#6c5ce7'}">${p.groupName || 'Grupo'}</span>` : "";
+                    
                     html += `<div class="player-item">
                         <div class="player-info">
                             <img src="${p.photo}" class="avatar">
                             <div style="text-align:left">
-                                <span class="${nameClass}">${p.name}</span>${groupTag}<br>
-                                <small style="color:#aaa">${p.rank || 'Cobre'}</small>
+                                <span class="${nClass}">${pref}${p.name}</span>${gTag}<br>
+                                <small class="rank-${(p.rank||'cobre').toLowerCase()}">${p.rank || 'Cobre'}</small>
                             </div>
                         </div>
                         <div style="font-weight:bold; font-size:1.5rem; color:#2ecc71;">${p.floor}º</div>
                     </div>`;
                 }
             });
-            document.getElementById('globalList').innerHTML = html;
+            document.getElementById('globalList').innerHTML = html || "Dungeon vazia...";
         });
     </script>
 </body>
-</html>
+        </html>
+    
