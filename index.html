@@ -10,19 +10,13 @@
         :root { --bg: #0d0d0f; --card: #16161d; --text: #e0e0e0; --accent: #7289da; --warning: #f1c40f; --discord-blue: #5865F2; --discord-green: #2ecc71; }
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
         .card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid #2d2d3d; text-align: center; }
-        
-        /* Estilo da Foto no Mapa */
         .avatar { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; margin-right: 12px; }
         .player-info { display: flex; align-items: center; }
-
         .aviso-regras { background: rgba(241, 196, 15, 0.1); border: 1px solid var(--warning); color: var(--warning); padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; text-align: left; line-height: 1.4; }
         .btn-discord { display: block; color: white; text-decoration: none; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; margin-top: 10px; text-align: center; }
         .bg-blue { background: var(--discord-blue); }
         .bg-green { background: var(--discord-green); }
-
-        /* Cores dos Ranks */
         .rank-cobre { color: #e67e22; } .rank-ferro { color: #546e7a; } .rank-prata { color: #95a5a6; } .rank-ouro { color: #f1c40f; } .rank-platina { color: #6dd9f4; } .rank-mithril { color: #2ecc71; } .rank-orichalcum { color: #9b59b6; } .rank-adamantite { color: #3498db; } .rank-master { color: #e74c3c; font-weight: 900; text-shadow: 0 0 8px rgba(231, 76, 60, 0.6); }
-
         .floor-display { font-size: 3.5rem; font-weight: bold; color: #2ecc71; margin: 10px 0; }
         .btn-row { display: flex; gap: 10px; margin-top: 15px; }
         .btn { flex: 1; padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 1.1rem; color: white; cursor: pointer; }
@@ -39,11 +33,9 @@
 </head>
 <body>
     <h2 style="text-align: center; color: var(--accent);">DUNGEON HUNTERS</h2>
-
     <div class="card">
         <input type="text" id="userName" placeholder="Nome do seu Personagem">
         <input type="text" id="userPhoto" placeholder="Link da Foto do Personagem">
-        
         <div id="joinContainer">
             <div class="aviso-regras" style="text-align: center;">
                 <strong>🚪 ENTRADA DA DUNGEON</strong><br>
@@ -52,7 +44,6 @@
             <a href="https://discord.com/channels/1311665787798294558/1318049627324289077" target="_blank" class="btn-discord bg-blue">Ir para o Portão (Discord)</a>
             <button class="btn btn-toggle" onclick="toggleDungeon(true)">ENTRAR NA DUNGEON</button>
         </div>
-
         <div id="statusContainer" style="display:none;">
             <div class="aviso-regras">
                 <strong>⚠️ REGRAS:</strong> Ação no canal do andar onde você parou no site.
@@ -67,7 +58,6 @@
             <button class="btn btn-exit" style="margin-top:10px; width:100%;" onclick="toggleDungeon(false)">SAIR DA DUNGEON</button>
         </div>
     </div>
-
     <div class="card">
         <h3>📍 Mapa da Dungeon</h3>
         <div id="globalList">Buscando aventureiros...</div>
@@ -86,21 +76,32 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        function monitorarCombate(name) {
+            db.ref('players/' + name + '/combat').on('value', snap => {
+                const isCombat = snap.val() || false;
+                const btn = document.getElementById('combatBtn');
+                if (btn) {
+                    btn.innerText = isCombat ? "SAIR DE COMBATE" : "ENTRAR EM COMBATE";
+                    btn.className = isCombat ? "btn btn-combat active" : "btn btn-combat";
+                }
+            });
+        }
+
         function toggleDungeon(entering) {
             const name = document.getElementById('userName').value.trim();
             const photo = document.getElementById('userPhoto').value.trim() || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-            
             if(!name) return alert("Digite o nome do seu personagem!");
-            
             const ref = db.ref('players/' + name);
             if(entering) {
                 ref.update({ name: name, photo: photo, floor: 1, online: true, combat: false });
                 document.getElementById('statusContainer').style.display = 'block';
                 document.getElementById('joinContainer').style.display = 'none';
+                monitorarCombate(name);
             } else {
                 ref.update({ online: false, combat: false });
                 document.getElementById('statusContainer').style.display = 'none';
                 document.getElementById('joinContainer').style.display = 'block';
+                db.ref('players/' + name + '/combat').off();
             }
         }
 
@@ -117,10 +118,11 @@
 
         function toggleCombat() {
             const name = document.getElementById('userName').value.trim();
-            const ref = db.ref('players/' + name);
+            if(!name) return;
+            const ref = db.ref('players/' + name + '/combat');
             ref.once('value', snap => {
-                const isCombat = !snap.val().combat;
-                ref.update({ combat: isCombat });
+                const estadoAtual = snap.val() || false;
+                ref.set(!estadoAtual);
             });
         }
 
