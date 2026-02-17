@@ -7,11 +7,15 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        :root { --bg: #0d0d0f; --card: #16161d; --text: #e0e0e0; --accent: #7289da; --warning: #f1c40f; }
+        :root { --bg: #0d0d0f; --card: #16161d; --text: #e0e0e0; --accent: #7289da; --warning: #f1c40f; --discord-blue: #5865F2; --discord-green: #2ecc71; }
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
         .card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid #2d2d3d; text-align: center; }
         .avatar { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; margin-right: 12px; }
         .player-info { display: flex; align-items: center; }
+        .aviso-regras { background: rgba(241, 196, 15, 0.1); border: 1px solid var(--warning); color: var(--warning); padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; text-align: left; line-height: 1.4; }
+        .btn-discord { display: block; color: white; text-decoration: none; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; margin-top: 10px; text-align: center; }
+        .bg-blue { background: var(--discord-blue); }
+        .bg-green { background: var(--discord-green); }
         .floor-display { font-size: 3.5rem; font-weight: bold; color: #2ecc71; margin: 5px 0; }
         .btn { padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; }
         .btn-up { background: #2ecc71; flex: 1; } .btn-down { background: #e74c3c; flex: 1; }
@@ -32,14 +36,27 @@
     <h2 style="text-align: center; color: var(--accent);">₊˚⊹ ⚔ ꒱ DUNGEON HUNTERS</h2>
     
     <div class="card" id="loginCard">
-        <input type="text" id="userName" placeholder="Nome do Personagem">
-        <input type="text" id="userPhoto" placeholder="Link da Foto">
-        <button class="btn btn-up" style="width:100%" onclick="toggleDungeon(true)">ENTRAR NA DUNGEON</button>
+        <div class="aviso-regras" style="text-align: center;">
+            <strong>🚪 ENTRADA DA DUNGEON</strong><br>
+            Faça sua ação no Discord primeiro, preencha os dados e clique em Entrar.
+        </div>
+        <input type="text" id="userName" placeholder="Nome do Personagem (Igual ao RPG)">
+        <input type="text" id="userPhoto" placeholder="Link da Foto (Do Discord)">
+        <a href="https://discord.com/channels/1311665787798294558/1318049627324289077" target="_blank" class="btn-discord bg-blue">Ir para o Portão (Discord)</a>
+        <button class="btn btn-up" style="width:100%; margin-top:10px;" onclick="toggleDungeon(true)">ENTRAR NA DUNGEON</button>
     </div>
 
     <div class="card" id="statusContainer" style="display:none;">
+        <div class="aviso-regras">
+            <strong>⚠️ REGRAS DE EXPLORAÇÃO:</strong>
+            <br>• Só mude o andar APÓS a ação no Discord.
+            <br>• Ao sair do RPG, clique em <b>SAIR DA DUNGEON</b> abaixo.
+            <a href="https://discord.com/channels/1311665787798294558/1318049727715213323" target="_blank" class="btn-discord bg-green" style="margin-top:10px;">📍 Canais dos Andares no Discord</a>
+        </div>
+
         <div id="groupBadge" style="display:none; color: #6c5ce7; font-weight: bold; margin-bottom: 5px;"></div>
         <div id="floorNum" class="floor-display">1</div>
+        <div style="font-size: 0.8rem; color: #888; margin-bottom: 10px;">ANDAR ATUAL</div>
         
         <div id="controlPanel">
             <div style="display:flex; gap:10px; margin-top:10px;">
@@ -47,27 +64,28 @@
                 <button class="btn btn-up" onclick="changeFloor(1)">▲</button>
             </div>
         </div>
-        <div id="memberNotice" style="display:none; color: #6c5ce7; font-size: 0.9rem; margin: 10px 0;">🔒 Seguindo o Líder</div>
+        <div id="memberNotice" style="display:none; color: #6c5ce7; font-size: 0.9rem; margin: 10px 0; font-weight: bold;">🔒 SEGUINDO O LÍDER</div>
 
         <button id="combatBtn" class="btn btn-combat" onclick="toggleStatus('combat')">ENTRAR EM COMBATE</button>
         <button id="helpBtn" class="btn btn-help" onclick="toggleStatus('help')">PEDIR AJUDA (!)</button>
         
         <div id="groupSection" style="border-top: 1px solid #333; margin-top: 15px; padding-top: 15px;">
-            <div id="createGroupForm">
+            <div id="inviteArea">
                 <input type="text" id="inviteName" placeholder="Convidar Jogador">
                 <input type="text" id="groupName" placeholder="Nome do Grupo">
+                <label style="font-size: 0.7rem; color: #aaa;">Cor da Tag:</label>
                 <input type="color" id="groupColor" value="#6c5ce7" style="height:35px;">
-                <button class="btn btn-group" onclick="sendInvite()">CONVIDAR</button>
+                <button class="btn btn-group" onclick="sendInvite()">ENVIAR CONVITE</button>
             </div>
-            <button id="leaveGroupBtn" class="btn" style="background:#444; width:100%; display:none;" onclick="leaveGroup()">SAIR DO GRUPO</button>
+            <button id="leaveGroupBtn" class="btn" style="background:#444; width:100%; display:none; margin-top:10px;" onclick="leaveGroup()">SAIR DO GRUPO</button>
         </div>
 
-        <button class="btn btn-exit" onclick="toggleDungeon(false)">SAIR DA DUNGEON</button>
+        <button class="btn btn-exit" onclick="toggleDungeon(false)">SAIR DA DUNGEON (SITE)</button>
     </div>
 
     <div class="card">
         <h3>📍 Mapa da Dungeon</h3>
-        <div id="globalList"></div>
+        <div id="globalList">Buscando heróis...</div>
     </div>
 
     <script>
@@ -87,7 +105,7 @@
         function toggleDungeon(entering) {
             myName = document.getElementById('userName').value.trim();
             const photo = document.getElementById('userPhoto').value.trim() || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-            if(!myName) return alert("Digite o nome!");
+            if(!myName) return alert("Digite o nome do seu personagem!");
             if(entering) {
                 db.ref('players/' + myName).update({ name: myName, photo: photo, floor: 1, online: true, combat: false, help: false, groupID: "", leader: false });
                 document.getElementById('loginCard').style.display = 'none';
@@ -100,7 +118,6 @@
         }
 
         function startListeners() {
-            // Ouvinte de Convites
             db.ref('players/' + myName + '/inviteFrom').on('value', snap => {
                 const inviteData = snap.val();
                 if(inviteData) {
@@ -116,7 +133,6 @@
                 }
             });
 
-            // Ouvinte de Status
             db.ref('players/' + myName).on('value', snap => {
                 const p = snap.val(); if(!p) return;
                 document.getElementById('floorNum').innerText = p.floor;
@@ -125,12 +141,18 @@
                 
                 const inGroup = !!p.groupID;
                 const isLeader = p.leader;
-                document.getElementById('createGroupForm').style.display = inGroup ? 'none' : 'block';
+                
+                // LÓGICA DE VISIBILIDADE DO GRUPO:
+                // Se NÃO está em grupo, mostra convite. 
+                // Se É LÍDER, mostra convite (para chamar mais gente).
+                // Se É MEMBRO, esconde convite.
+                document.getElementById('inviteArea').style.display = (!inGroup || isLeader) ? 'block' : 'none';
+                
                 document.getElementById('leaveGroupBtn').style.display = inGroup ? 'block' : 'none';
                 document.getElementById('controlPanel').style.display = (inGroup && !isLeader) ? 'none' : 'block';
                 document.getElementById('memberNotice').style.display = (inGroup && !isLeader) ? 'block' : 'none';
                 document.getElementById('groupBadge').style.display = inGroup ? 'block' : 'none';
-                document.getElementById('groupBadge').innerText = isLeader ? "👑 LÍDER" : "🛡️ EM GRUPO";
+                document.getElementById('groupBadge').innerText = isLeader ? "👑 LÍDER DE GRUPO" : "🛡️ EM GRUPO";
             });
         }
 
@@ -162,10 +184,13 @@
             const target = document.getElementById('inviteName').value.trim();
             const gName = document.getElementById('groupName').value.trim() || "Grupo";
             const gColor = document.getElementById('groupColor').value;
-            if(!target || target === myName) return alert("Alvo inválido!");
+            if(!target || target === myName) return alert("Nome de jogador inválido!");
+            
+            // Define o Líder e os dados do grupo
             db.ref('players/' + myName).update({ groupID: "grp_" + myName, leader: true, groupName: gName, groupColor: gColor });
+            // Envia o convite para o alvo
             db.ref('players/' + target).update({ inviteFrom: { sender: myName, gName: gName, gColor: gColor } });
-            alert("Convite enviado!");
+            alert("Convite enviado para " + target + "!");
         }
 
         function leaveGroup() {
@@ -183,14 +208,15 @@
                         <div class="player-info">
                             <img src="${p.photo}" class="avatar">
                             <div><span class="${nClass}">${p.help?'⚠️ ':''}${p.name}</span>${gTag}<br>
-                            <small style="color:#aaa">${p.rank || 'Cobre'}</small></div>
+                            <small class="rank-${(p.rank||'cobre').toLowerCase()}">${p.rank || 'Cobre'}</small></div>
                         </div>
                         <div style="font-weight:bold; font-size:1.5rem; color:#2ecc71;">${p.floor}º</div>
                     </div>`;
                 }
             });
-            document.getElementById('globalList').innerHTML = html;
+            document.getElementById('globalList').innerHTML = html || "Dungeon vazia...";
         });
     </script>
 </body>
-</html>
+    </html>
+                    
