@@ -7,9 +7,23 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        :root { --bg: #0d0d0f; --card: #16161d; --text: #e0e0e0; --accent: #7289da; }
+        :root { --bg: #0d0d0f; --card: #16161d; --text: #e0e0e0; --accent: #7289da; --warning: #f1c40f; }
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; }
         .card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid #2d2d3d; text-align: center; }
+        
+        /* Estilo do Aviso de Regras */
+        .aviso-regras { 
+            background: rgba(241, 196, 15, 0.1); 
+            border: 1px solid var(--warning); 
+            color: var(--warning); 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-bottom: 15px; 
+            font-size: 0.85rem; 
+            text-align: left;
+            line-height: 1.4;
+        }
+
         .floor-display { font-size: 3.5rem; font-weight: bold; color: #2ecc71; margin: 10px 0; }
         .btn-row { display: flex; gap: 10px; margin-top: 15px; }
         .btn { flex: 1; padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 1.1rem; color: white; cursor: pointer; }
@@ -31,6 +45,13 @@
         <input type="text" id="userName" placeholder="Seu Nome no Discord">
         
         <div id="statusContainer" style="display:none;">
+            <div class="aviso-regras">
+                <strong>⚠️ LEMBRE-SE:</strong>
+                <br>• Faça as ações no andar em que você parou.
+                <br>• Respeite as regras: não suba de uma vez!
+                <br>• Saiu do Discord? Clique em <b>SAIR DA DUNGEON</b> abaixo.
+            </div>
+
             <div id="floorNum" class="floor-display">1</div>
             <div style="font-size: 0.9rem; color: #888;">ANDAR ATUAL</div>
             <div class="btn-row">
@@ -110,7 +131,7 @@
                 if(p.online && p.name) {
                     html += `<div class="player-item">
                         <div style="text-align:left"><span class="${p.combat ? 'in-combat' : ''}">${p.name}</span><br>
-                        <small style="color:#7289da">${p.rank || 'Cobre'}</small></div>
+                        <small style="color:#7289da; text-transform:uppercase;">${p.rank || 'Cobre'}</small></div>
                         <div style="font-weight:bold; font-size:1.5rem;">${p.floor}º</div>
                     </div>`;
                 }
@@ -119,4 +140,5 @@
         });
     </script>
 </body>
-</html>
+    </html>
+    
