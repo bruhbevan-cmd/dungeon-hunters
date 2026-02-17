@@ -8,19 +8,17 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
         body { background: #1a1a1a; color: white; font-family: sans-serif; padding: 20px; }
-        .admin-card { background: #252525; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid #7289da; }
-        select, input { padding: 10px; border-radius: 5px; margin-top: 5px; width: 100%; background: #000; color: #fff; border: 1px solid #444; }
-        button { background: #7289da; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; margin-top: 10px; font-weight: bold; }
-        .senha-box { margin-bottom: 30px; border: 1px dashed #555; padding: 15px; }
+        .admin-card { background: #252525; padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 5px solid #7289da; }
+        select, input { padding: 12px; border-radius: 5px; margin-top: 5px; width: 100%; background: #000; color: #fff; border: 1px solid #444; }
+        .btn-save { background: #2ecc71; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; margin-top: 10px; font-weight: bold; }
+        .btn-kick { background: #e74c3c; color: white; border: none; padding: 8px; width: 100%; border-radius: 5px; margin-top: 5px; font-size: 0.8rem; }
     </style>
 </head>
 <body>
     <h2>Admin - Dungeon Hunters</h2>
-    <div class="senha-box">
-        <label>Senha de Mestre:</label>
-        <input type="password" id="adminPass" placeholder="Senha para salvar alterações">
-    </div>
-    <div id="listaEdicao">Carregando jogadores...</div>
+    <input type="password" id="adminPass" placeholder="Senha de Mestre" style="margin-bottom:20px;">
+    
+    <div id="listaEdicao"></div>
 
     <script>
         const firebaseConfig = {
@@ -40,23 +38,29 @@
             let html = "";
             snap.forEach(child => {
                 let p = child.val();
+                if(!p.name) return;
                 let options = RANKS.map(r => `<option value="${r}" ${p.rank === r ? 'selected' : ''}>${r}</option>`).join('');
-                html += `
-                <div class="admin-card">
-                    <strong>Aventureiro: ${p.name}</strong><br>
-                    <small>Andar Atual: ${p.floor}º</small><br>
+                html += `<div class="admin-card">
+                    <strong>${p.name}</strong> (${p.online ? 'ON' : 'OFF'})<br>
                     <select id="rank-${p.name}">${options}</select>
-                    <button onclick="salvarRank('${p.name}')">Atualizar Rank</button>
+                    <button class="btn-save" onclick="salvarRank('${p.name}')">Salvar Rank</button>
+                    <button class="btn-kick" onclick="kickPlayer('${p.name}')">EXPULSAR DA DUNGEON</button>
                 </div>`;
             });
-            document.getElementById('listaEdicao').innerHTML = html || "Nenhum jogador online.";
+            document.getElementById('listaEdicao').innerHTML = html;
         });
 
         function salvarRank(nome) {
-            const senha = document.getElementById('adminPass').value;
-            if(senha !== "hunters123") return alert("Senha de mestre incorreta!");
+            if(document.getElementById('adminPass').value !== "hunters123") return alert("Senha errada!");
             const novoRank = document.getElementById(`rank-${nome}`).value;
-            db.ref('players/' + nome).update({ rank: novoRank }).then(() => alert("Rank de " + nome + " atualizado!"));
+            db.ref('players/' + nome).update({ rank: novoRank });
+        }
+
+        function kickPlayer(nome) {
+            if(document.getElementById('adminPass').value !== "hunters123") return alert("Senha errada!");
+            if(confirm("Expulsar " + nome + "?")) {
+                db.ref('players/' + nome).remove();
+            }
         }
     </script>
 </body>
