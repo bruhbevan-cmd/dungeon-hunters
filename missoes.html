@@ -14,7 +14,7 @@
             font-family: 'Georgia', serif;
             margin: 0;
             padding: 20px;
-            padding-bottom: 100px;
+            padding-bottom: 120px;
         }
         h1 { text-align: center; color: #f3e5ab; text-shadow: 2px 2px 4px #000; font-size: 2.5rem; margin-bottom: 30px; }
         
@@ -34,12 +34,10 @@
             box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
             border: 1px solid #d2b48c;
             position: relative;
-            transition: transform 0.3s;
             display: flex;
             flex-direction: column;
             border-bottom: 4px solid #d2b48c;
         }
-        .pergaminho:hover { transform: translateY(-5px); }
 
         .tag {
             position: absolute;
@@ -51,14 +49,13 @@
             font-weight: bold;
             text-transform: uppercase;
             color: white;
-            box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
         }
         .tipo-combate { background: #8b0000; }
         .tipo-coleta { background: #228b22; }
         .tipo-expedicao { background: #4169e1; }
 
         .missao-titulo { font-size: 1.4rem; border-bottom: 2px solid #3d2411; margin-bottom: 12px; padding-bottom: 5px; font-weight: bold; text-align: center; }
-        .info-row { font-size: 0.85rem; margin: 6px 0; line-height: 1.2; }
+        .info-row { font-size: 0.85rem; margin: 6px 0; }
         .info-row strong { color: #5d3a1a; }
         .desc { font-style: italic; font-size: 0.95rem; margin-top: 15px; flex-grow: 1; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; }
         
@@ -83,10 +80,9 @@
             width: 100%;
             border-radius: 4px;
         }
-        .btn-aceitar:hover { background: #3d2411; }
 
-        /* Estilo do Painel do Mestre */
-        .painel-mestre {
+        /* Painel Administrativo */
+        #painelMestre {
             position: fixed;
             top: 50%;
             left: 50%;
@@ -97,28 +93,31 @@
             padding: 25px;
             border-radius: 10px;
             border: 5px double #3d2411;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
-            z-index: 1000;
-            display: none;
+            box-shadow: 0 0 100px rgba(0,0,0,0.9);
+            z-index: 9999;
+            display: none; /* Inicia escondido */
         }
-        .painel-mestre input, .painel-mestre textarea, .painel-mestre select {
-            width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #3d2411; box-sizing: border-box; background: #fffcf0; font-family: 'Georgia', serif;
+        input, textarea, select {
+            width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #3d2411; box-sizing: border-box; background: #fffcf0;
         }
 
-        /* Botão Mestre Quase Invisível */
-        .btn-mestre-login {
+        /* O BOTÃO QUE NÃO ESTAVA FUNCIONANDO */
+        .btn-mestre-trigger {
             position: fixed;
-            bottom: 15px;
-            right: 15px;
-            background: none;
+            bottom: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.05); /* Quase invisível */
             border: none;
-            color: #f4e4bc;
-            opacity: 0.2;
             cursor: pointer;
-            font-size: 1.2rem;
-            z-index: 999;
+            z-index: 10000; /* Sempre no topo de tudo */
+            border-radius: 50%;
+            color: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .btn-mestre-login:hover { opacity: 1; }
     </style>
 </head>
 <body>
@@ -126,30 +125,30 @@
     <h1>📜 Mural de Missões da Taverna</h1>
 
     <div class="mural" id="muralMissoes">
-        </div>
+        <p style="text-align:center; color: #f4e4bc;">Carregando pergaminhos...</p>
+    </div>
 
-    <button class="btn-mestre-login" onclick="fazerLoginMestre()">🛠️</button>
+    <button class="btn-mestre-trigger" onclick="abrirLoginMestre()">🛠️</button>
 
-    <div class="painel-mestre" id="painelMestre">
-        <h3 style="text-align: center; margin-top: 0;">🛠️ POSTAR MISSÃO NO MURAL</h3>
+    <div id="painelMestre">
+        <h3 style="text-align: center; margin-top: 0;">🛠️ POSTAR MISSÃO</h3>
         <input type="text" id="qTitulo" placeholder="Título da Missão">
         <select id="qTipo">
-            <option value="combate">⚔️ Combate (Derrotar monstros)</option>
-            <option value="coleta">🌿 Coleta (Buscar itens)</option>
-            <option value="expedicao">🗺️ Expedição (Explorar locais)</option>
+            <option value="combate">⚔️ Combate</option>
+            <option value="coleta">🌿 Coleta</option>
+            <option value="expedicao">🗺️ Expedição</option>
         </select>
-        <input type="text" id="qLocal" placeholder="Local da Missão">
-        <input type="text" id="qTempo" placeholder="Duração (Ex: 48 horas)">
-        <input type="text" id="qRecompensa" placeholder="Recompensa (Ex: 1000 Moedas)">
-        <input type="text" id="qRequisito" placeholder="Requisitos (Ex: Rank Prata)">
-        <textarea id="qDesc" rows="4" placeholder="Detalhes e informações extras..."></textarea>
+        <input type="text" id="qLocal" placeholder="Local">
+        <input type="text" id="qTempo" placeholder="Duração">
+        <input type="text" id="qRecompensa" placeholder="Recompensa">
+        <input type="text" id="qRequisito" placeholder="Requisito">
+        <textarea id="qDesc" rows="4" placeholder="Descrição detalhada..."></textarea>
         
-        <button class="btn-aceitar" onclick="postarMissao()" style="background: #228b22; margin-top: 5px;">PREGAR NO MURAL</button>
-        <button class="btn-aceitar" onclick="document.getElementById('painelMestre').style.display='none'" style="background: #8b0000; margin-top: 5px;">CANCELAR</button>
+        <button class="btn-aceitar" onclick="postarMissao()" style="background: #228b22;">PREGAR NO MURAL</button>
+        <button class="btn-aceitar" onclick="fecharPainel()" style="background: #8b0000; margin-top: 5px;">FECHAR</button>
     </div>
 
     <script>
-        // CONFIGURAÇÃO FIREBASE (MESMA DA DUNGEON)
         const firebaseConfig = {
             apiKey: "AIzaSyAsq9HAbLMReGnDX9jfRnChPF-R0f0rDfA",
             authDomain: "dungeon-hunters-15a90.firebaseapp.com",
@@ -164,26 +163,73 @@
 
         let eMestre = false;
 
-        // FUNÇÃO DE LOGIN
-        function fazerLoginMestre() {
-            const senha = prompt("Identifique-se, Grande Mestre:");
-            if (senha === "HUNTERS123") { // <<--- MUDE SUA SENHA AQUI!
+        function abrirLoginMestre() {
+            console.log("Tentando abrir login...");
+            const senha = prompt("Identifique-se, Mestre:");
+            if (senha === hunters123") { // <<--- SUA SENHA AQUI
                 eMestre = true;
                 document.getElementById('painelMestre').style.display = 'block';
                 renderizarMural();
-                alert("O mural agora está sob seu comando!");
-            } else {
-                alert("Acesso negado! As runas não reconhecem sua voz.");
+                alert("Acesso liberado!");
+            } else if (senha !== null) {
+                alert("Senha incorreta!");
             }
         }
 
-        // FUNÇÃO PARA CARREGAR O MURAL
+        function fecharPainel() {
+            document.getElementById('painelMestre').style.display = 'none';
+        }
+
         function renderizarMural() {
             db.ref('missoes').on('value', snap => {
                 let html = "";
                 snap.forEach(child => {
                     const m = child.val();
+                    let btnExcluir = eMestre ? `<button onclick="removerMissao('${child.key}')" style="background:#8b0000; color:white; border:none; padding:8px; margin-top:10px; cursor:pointer; width:100%; border-radius:4px;">🗑️ REMOVER</button>` : "";
                     
-                    // Botão de excluir só aparece para o mestre
-                    let btnExcluir = eMestre ? `<button onclick="removerMissao('${child.key}')" style="background:#8b0000; color:white; border:none; padding:8px; margin-top:10px; cursor
-    
+                    html += `
+                    <div class="pergaminho">
+                        <div class="tag tipo-${m.tipo}">${m.tipo}</div>
+                        <div class="missao-titulo">${m.titulo}</div>
+                        <div class="info-row"><strong>📍 LOCAL:</strong> ${m.local}</div>
+                        <div class="info-row"><strong>⏳ PRAZO:</strong> ${m.tempo}</div>
+                        <div class="info-row"><strong>📜 REQUISITO:</strong> ${m.requisito}</div>
+                        <div class="desc">${m.desc}</div>
+                        <div class="recompensa">💰 RECOMPENSA: ${m.recompensa}</div>
+                        <button class="btn-aceitar" onclick="aceitarMissao('${m.titulo}')">ACEITAR MISSÃO</button>
+                        ${btnExcluir}
+                    </div>`;
+                });
+                document.getElementById('muralMissoes').innerHTML = html || "<p style='text-align:center; color:#f4e4bc;'>O mural está vazio.</p>";
+            });
+        }
+
+        function postarMissao() {
+            const info = {
+                titulo: document.getElementById('qTitulo').value,
+                tipo: document.getElementById('qTipo').value,
+                local: document.getElementById('qLocal').value,
+                tempo: document.getElementById('qTempo').value,
+                recompensa: document.getElementById('qRecompensa').value,
+                requisito: document.getElementById('qRequisito').value,
+                desc: document.getElementById('qDesc').value
+            };
+            if(!info.titulo) return alert("Falta o título!");
+            db.ref('missoes').push(info).then(() => {
+                fecharPainel();
+                alert("Postado!");
+            });
+        }
+
+        function removerMissao(id) {
+            if(confirm("Remover mesmo?")) db.ref('missoes/' + id).remove();
+        }
+
+        function aceitarMissao(titulo) {
+            alert("Você aceitou: " + titulo);
+        }
+
+        renderizarMural();
+    </script>
+</body>
+</html>
