@@ -1,67 +1,189 @@
-<button onclick="fazerLoginMestre()" style="position: fixed; bottom: 10px; right: 10px; opacity: 0.3; background: none; border: none; color: #f4e4bc; cursor: pointer;">🛠️</button>
-
-<div class="painel-mestre" id="painelMestre" style="display: none;">
-    <h3 style="text-align: center;">🛠️ POSTAR NOVA MISSÃO</h3>
-    <input type="text" id="qTitulo" placeholder="Título da Missão">
-    <select id="qTipo">
-        <option value="combate">⚔️ Combate (Derrotar monstros)</option>
-        <option value="coleta">🌿 Coleta (Buscar itens)</option>
-        <option value="expedicao">🗺️ Expedição (Explorar locais)</option>
-    </select>
-    <input type="text" id="qLocal" placeholder="Local da Missão">
-    <input type="text" id="qTempo" placeholder="Tempo disponível">
-    <input type="text" id="qRecompensa" placeholder="Recompensa (Ex: 500 Liras)">
-    <input type="text" id="qRequisito" placeholder="Recomendações (Ex: Rank Prata+)">
-    <textarea id="qDesc" rows="4" placeholder="Descrição detalhada..."></textarea>
-    <button class="btn-aceitar" onclick="postarMissao()" style="background: #228b22;">PREGAR NO MURAL</button>
-    <button class="btn-aceitar" onclick="document.getElementById('painelMestre').style.display='none'" style="background: #444; margin-top: 5px;">FECHAR PAINEL</button>
-</div>
-
-<script>
-    // ... (Mantenha sua configuração do Firebase aqui) ...
-
-    let eMestre = false;
-
-    // Função para liberar o modo mestre
-    function fazerLoginMestre() {
-        const senha = prompt("Digite a Senha do Grande Mestre:");
-        if (senha === "SUASENHA123") { // <-- Altere aqui a sua senha!
-            eMestre = true;
-            document.getElementById('painelMestre').style.display = 'block';
-            renderizarMissoes(); // Atualiza a lista para mostrar os botões de excluir
-            alert("Acesso concedido, Mestre!");
-        } else {
-            alert("Senha incorreta. Os pergaminhos estão protegidos por magia!");
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quadro de Missões - Taverna</title>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <style>
+        body {
+            background: #2c1b10;
+            background-image: url('https://www.transparenttextures.com/patterns/dark-wood.png');
+            color: #3d2411;
+            font-family: 'Georgia', serif;
+            margin: 0;
+            padding: 20px;
+            padding-bottom: 100px;
         }
-    }
+        h1 { text-align: center; color: #f3e5ab; text-shadow: 2px 2px 4px #000; font-size: 2.5rem; margin-bottom: 30px; }
+        
+        .mural {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-    function renderizarMissoes() {
-        db.ref('missoes').on('value', snap => {
-            let html = "";
-            snap.forEach(child => {
-                const m = child.val();
-                // O botão de remover só aparece se eMestre for true
-                let btnRemover = eMestre ? `<button onclick="removerMissao('${child.key}')" style="background:#e74c3c; color:white; border:none; padding:5px; margin-top:10px; cursor:pointer; width:100%; border-radius:5px;">🗑️ REMOVER MISSÃO</button>` : "";
-                
-                html += `
-                <div class="pergaminho">
-                    <div class="tag tipo-${m.tipo}">${m.tipo}</div>
-                    <div class="missao-titulo">${m.titulo}</div>
-                    <div class="info-row"><strong>📍 LOCAL:</strong> ${m.local}</div>
-                    <div class="info-row"><strong>⏳ DISPONÍVEL:</strong> ${m.tempo}</div>
-                    <div class="info-row"><strong>📜 REQUISITO:</strong> ${m.requisito}</div>
-                    <div class="desc">${m.desc}</div>
-                    <div class="recompensa">💰 RECOMPENSA: ${m.recompensa}</div>
-                    <button class="btn-aceitar" onclick="aceitarMissao('${m.titulo}')">ACEITAR MISSÃO</button>
-                    ${btnRemover}
-                </div>`;
-            });
-            document.getElementById('muralMissoes').innerHTML = html || "<p style='text-align:center'>O mural está vazio...</p>";
-        });
-    }
+        .pergaminho {
+            background: #f4e4bc;
+            background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+            padding: 25px;
+            border-radius: 2px;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+            border: 1px solid #d2b48c;
+            position: relative;
+            transition: transform 0.3s;
+            display: flex;
+            flex-direction: column;
+            border-bottom: 4px solid #d2b48c;
+        }
+        .pergaminho:hover { transform: translateY(-5px); }
 
-    // Inicializa o mural
-    renderizarMissoes();
+        .tag {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: white;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+        .tipo-combate { background: #8b0000; }
+        .tipo-coleta { background: #228b22; }
+        .tipo-expedicao { background: #4169e1; }
 
-    // ... (Mantenha as funções postarMissao, removerMissao e aceitarMissao) ...
-</script>
+        .missao-titulo { font-size: 1.4rem; border-bottom: 2px solid #3d2411; margin-bottom: 12px; padding-bottom: 5px; font-weight: bold; text-align: center; }
+        .info-row { font-size: 0.85rem; margin: 6px 0; line-height: 1.2; }
+        .info-row strong { color: #5d3a1a; }
+        .desc { font-style: italic; font-size: 0.95rem; margin-top: 15px; flex-grow: 1; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; }
+        
+        .recompensa { 
+            margin-top: 15px; 
+            padding: 10px; 
+            background: rgba(0,0,0,0.05); 
+            border: 1px dashed #3d2411;
+            text-align: center;
+            font-weight: bold;
+            color: #228b22;
+        }
+
+        .btn-aceitar {
+            background: #5d3a1a;
+            color: #f4e4bc;
+            border: none;
+            padding: 12px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            border-radius: 4px;
+        }
+        .btn-aceitar:hover { background: #3d2411; }
+
+        /* Estilo do Painel do Mestre */
+        .painel-mestre {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 500px;
+            background: #f3e5ab;
+            padding: 25px;
+            border-radius: 10px;
+            border: 5px double #3d2411;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            z-index: 1000;
+            display: none;
+        }
+        .painel-mestre input, .painel-mestre textarea, .painel-mestre select {
+            width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #3d2411; box-sizing: border-box; background: #fffcf0; font-family: 'Georgia', serif;
+        }
+
+        /* Botão Mestre Quase Invisível */
+        .btn-mestre-login {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #f4e4bc;
+            opacity: 0.2;
+            cursor: pointer;
+            font-size: 1.2rem;
+            z-index: 999;
+        }
+        .btn-mestre-login:hover { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <h1>📜 Mural de Missões da Taverna</h1>
+
+    <div class="mural" id="muralMissoes">
+        </div>
+
+    <button class="btn-mestre-login" onclick="fazerLoginMestre()">🛠️</button>
+
+    <div class="painel-mestre" id="painelMestre">
+        <h3 style="text-align: center; margin-top: 0;">🛠️ POSTAR MISSÃO NO MURAL</h3>
+        <input type="text" id="qTitulo" placeholder="Título da Missão">
+        <select id="qTipo">
+            <option value="combate">⚔️ Combate (Derrotar monstros)</option>
+            <option value="coleta">🌿 Coleta (Buscar itens)</option>
+            <option value="expedicao">🗺️ Expedição (Explorar locais)</option>
+        </select>
+        <input type="text" id="qLocal" placeholder="Local da Missão">
+        <input type="text" id="qTempo" placeholder="Duração (Ex: 48 horas)">
+        <input type="text" id="qRecompensa" placeholder="Recompensa (Ex: 1000 Moedas)">
+        <input type="text" id="qRequisito" placeholder="Requisitos (Ex: Rank Prata)">
+        <textarea id="qDesc" rows="4" placeholder="Detalhes e informações extras..."></textarea>
+        
+        <button class="btn-aceitar" onclick="postarMissao()" style="background: #228b22; margin-top: 5px;">PREGAR NO MURAL</button>
+        <button class="btn-aceitar" onclick="document.getElementById('painelMestre').style.display='none'" style="background: #8b0000; margin-top: 5px;">CANCELAR</button>
+    </div>
+
+    <script>
+        // CONFIGURAÇÃO FIREBASE (MESMA DA DUNGEON)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAsq9HAbLMReGnDX9jfRnChPF-R0f0rDfA",
+            authDomain: "dungeon-hunters-15a90.firebaseapp.com",
+            databaseURL: "https://dungeon-hunters-15a90-default-rtdb.firebaseio.com",
+            projectId: "dungeon-hunters-15a90",
+            storageBucket: "dungeon-hunters-15a90.firebasestorage.app",
+            messagingSenderId: "386699061769",
+            appId: "1:386699061769:web:30f9023befc43da2ab66d8"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let eMestre = false;
+
+        // FUNÇÃO DE LOGIN
+        function fazerLoginMestre() {
+            const senha = prompt("Identifique-se, Grande Mestre:");
+            if (senha === "HUNTERS123") { // <<--- MUDE SUA SENHA AQUI!
+                eMestre = true;
+                document.getElementById('painelMestre').style.display = 'block';
+                renderizarMural();
+                alert("O mural agora está sob seu comando!");
+            } else {
+                alert("Acesso negado! As runas não reconhecem sua voz.");
+            }
+        }
+
+        // FUNÇÃO PARA CARREGAR O MURAL
+        function renderizarMural() {
+            db.ref('missoes').on('value', snap => {
+                let html = "";
+                snap.forEach(child => {
+                    const m = child.val();
+                    
+                    // Botão de excluir só aparece para o mestre
+                    let btnExcluir = eMestre ? `<button onclick="removerMissao('${child.key}')" style="background:#8b0000; color:white; border:none; padding:8px; margin-top:10px; cursor
+    
