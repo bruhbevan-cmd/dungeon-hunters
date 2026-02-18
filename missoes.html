@@ -15,8 +15,6 @@
             margin: 0; padding: 20px; padding-bottom: 100px;
         }
         h1 { text-align: center; color: #f3e5ab; text-shadow: 2px 2px 4px #000; font-size: 2.2rem; }
-        
-        /* Mural */
         .mural { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto; }
 
         .pergaminho {
@@ -30,12 +28,12 @@
         .tipo-combate { background: #8b0000; } .tipo-coleta { background: #228b22; } .tipo-expedicao { background: #4169e1; }
 
         .missao-titulo { font-size: 1.4rem; border-bottom: 2px solid #3d2411; margin-bottom: 12px; font-weight: bold; text-align: center; }
+        .tempo-restante { color: #8b0000; font-weight: bold; text-align: center; font-family: monospace; font-size: 1.1rem; margin-bottom: 10px; }
         .desc { font-style: italic; margin-top: 15px; flex-grow: 1; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; font-size: 0.9rem; }
         .recompensa { margin-top: 15px; padding: 10px; border: 1px dashed #3d2411; text-align: center; font-weight: bold; color: #228b22; }
         
         .status-aceito { background: #d2b48c; color: #5d3a1a; padding: 8px; text-align: center; font-weight: bold; margin-top: 10px; border-radius: 4px; font-size: 0.8rem; }
 
-        /* Modais */
         .modal {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: #f3e5ab; padding: 25px; border: 4px double #3d2411;
@@ -44,7 +42,6 @@
 
         input, textarea, select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #3d2411; box-sizing: border-box; background: #fffcf0; }
         .btn { background: #5d3a1a; color: #f4e4bc; border: none; padding: 12px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; border-radius: 4px; }
-        
         .btn-mestre-float { position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.6); color: white; border: 1px solid #f3e5ab; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; z-index: 999; }
     </style>
 </head>
@@ -81,9 +78,8 @@
             <option value="expedicao">🗺️ Expedição</option>
         </select>
         <input type="text" id="qLocal" placeholder="Localização">
-        <input type="text" id="qTempo" placeholder="Prazo/Tempo">
-        <input type="text" id="qRecompensa" placeholder="Recompensa">
-        <input type="text" id="qRequisito" placeholder="Requisitos">
+        <input type="number" id="qHoras" placeholder="Tempo de duração (em HORAS - ex: 24)">
+        <input type="text" id="qRecompensa" placeholder="Recompensa (Ex: 1000 Moedas)">
         <textarea id="qDesc" rows="4" placeholder="Detalhes da missão..."></textarea>
         <button class="btn" style="background:#228b22" onclick="salvarMissao()">Pregar no Mural</button>
         <button class="btn" style="background:#8b0000" onclick="fecharModais()">Fechar</button>
@@ -104,7 +100,7 @@
 
         let usuarioAtual = "";
         let ehMestre = false;
-        const SENHA_REAL = "123"; // <--- Altere sua senha de Mestre aqui!
+        const SENHA_REAL = "123"; 
 
         function fazerLogin() {
             usuarioAtual = document.getElementById('playerNome').value.trim();
@@ -116,11 +112,8 @@
         }
 
         function abrirPainelMestre() {
-            if(ehMestre) {
-                document.getElementById('painelCriar').style.display = 'block';
-            } else {
-                document.getElementById('modalSenhaMestre').style.display = 'block';
-            }
+            if(ehMestre) document.getElementById('painelCriar').style.display = 'block';
+            else document.getElementById('modalSenhaMestre').style.display = 'block';
         }
 
         function confirmarMestre() {
@@ -129,7 +122,7 @@
                 fecharModais();
                 document.getElementById('painelCriar').style.display = 'block';
                 renderizarMural();
-            } else { alert("Senha incorreta!"); }
+            } else alert("Senha incorreta!");
         }
 
         function fecharModais() {
@@ -138,19 +131,41 @@
         }
 
         function salvarMissao() {
+            const horas = parseInt(document.getElementById('qHoras').value);
+            if(isNaN(horas)) return alert("Coloque o tempo em horas!");
+            
+            const expiraEm = Date.now() + (horas * 60 * 60 * 1000);
+
             const m = {
                 titulo: document.getElementById('qTitulo').value,
                 tipo: document.getElementById('qTipo').value,
                 local: document.getElementById('qLocal').value,
-                tempo: document.getElementById('qTempo').value,
+                expiraEm: expiraEm,
                 recompensa: document.getElementById('qRecompensa').value,
-                requisito: document.getElementById('qRequisito').value,
                 desc: document.getElementById('qDesc').value,
                 aceitoPor: ""
             };
             if(!m.titulo) return;
             db.ref('missoes').push(m).then(() => { fecharModais(); alert("Missão Pregada!"); });
         }
+
+        function atualizarCronometros() {
+            const agora = Date.now();
+            document.querySelectorAll('.cronometro').forEach(el => {
+                const expira = parseInt(el.dataset.expira);
+                const diff = expira - agora;
+                if(diff <= 0) {
+                    el.innerText = "EXPIRADA";
+                    el.style.color = "gray";
+                } else {
+                    const h = Math.floor(diff / 3600000);
+                    const m = Math.floor((diff % 3600000) / 60000);
+                    const s = Math.floor((diff % 60000) / 1000);
+                    el.innerText = `${h}h ${m}m ${s}s`;
+                }
+            });
+        }
+        setInterval(atualizarCronometros, 1000);
 
         function aceitarMissao(id, titulo) {
             if(confirm("Deseja aceitar a missão: " + titulo + "?")) {
@@ -159,7 +174,7 @@
         }
 
         function removerMissao(id) {
-            if(confirm("Mestre, deseja remover permanentemente este pergaminho?")) {
+            if(confirm("Deseja remover este pergaminho?")) {
                 db.ref('missoes/' + id).remove();
             }
         }
@@ -170,30 +185,24 @@
                 snap.forEach(child => {
                     const m = child.val();
                     const id = child.key;
-                    
-                    let statusHtml = "";
-                    if(m.aceitoPor) {
-                        statusHtml = `<div class="status-aceito">📌 Aceita por: ${m.aceitoPor}</div>`;
-                    } else {
-                        statusHtml = `<button class="btn" onclick="aceitarMissao('${id}', '${m.titulo}')">Aceitar Missão</button>`;
-                    }
+                    let statusHtml = m.aceitoPor ? `<div class="status-aceito">📌 Aceita por: ${m.aceitoPor}</div>` : 
+                                     `<button class="btn" onclick="aceitarMissao('${id}', '${m.titulo}')">Aceitar Missão</button>`;
 
-                    let btnMestre = ehMestre ? `<button onclick="removerMissao('${id}')" style="background:#8b0000; color:white; border:none; padding:8px; margin-top:10px; cursor:pointer; width:100%; border-radius:4px;">🗑️ Remover Missão (Mestre)</button>` : "";
+                    let btnMestre = ehMestre ? `<button onclick="removerMissao('${id}')" style="background:#8b0000; color:white; border:none; padding:8px; margin-top:10px; cursor:pointer; width:100%; border-radius:4px;">🗑️ Remover (Mestre)</button>` : "";
 
                     html += `
                     <div class="pergaminho">
                         <div class="tag tipo-${m.tipo}">${m.tipo}</div>
                         <div class="missao-titulo">${m.titulo}</div>
+                        <div class="tempo-restante">⏳ <span class="cronometro" data-expira="${m.expiraEm}">--:--:--</span></div>
                         <div class="info-row"><strong>📍 Local:</strong> ${m.local}</div>
-                        <div class="info-row"><strong>⏳ Tempo:</strong> ${m.tempo}</div>
-                        <div class="info-row"><strong>📜 Rank:</strong> ${m.requisito}</div>
                         <div class="desc">${m.desc}</div>
                         <div class="recompensa">💰 ${m.recompensa}</div>
                         ${statusHtml}
                         ${btnMestre}
                     </div>`;
                 });
-                document.getElementById('muralMissoes').innerHTML = html || "<p style='text-align:center; color:#f4e4bc;'>Nenhuma missão disponível no momento.</p>";
+                document.getElementById('muralMissoes').innerHTML = html || "<p style='text-align:center; color:#f4e4bc;'>Nenhuma missão disponível.</p>";
             });
         }
     </script>
