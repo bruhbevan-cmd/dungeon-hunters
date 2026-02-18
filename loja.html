@@ -7,116 +7,78 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        :root {
-            --gold: #f3e5ab;
-            --dark-wood: #2c1b10;
-            --paper: #f4e4bc;
-        }
+        :root { --gold: #f3e5ab; --dark-wood: #2c1b10; --paper: #f4e4bc; }
         body {
             background: var(--dark-wood);
             background-image: url('https://www.transparenttextures.com/patterns/dark-wood.png');
-            color: #3d2411;
-            font-family: 'Georgia', serif;
-            margin: 0; padding: 20px;
-            padding-bottom: 100px;
+            color: #3d2411; font-family: 'Georgia', serif; margin: 0; padding: 20px; padding-bottom: 100px;
         }
         h1 { text-align: center; color: var(--gold); text-shadow: 2px 2px 4px #000; font-size: 2.5rem; }
-        
-        /* Sistema de Categorias */
         .categorias { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
-        .tab-btn { background: #5d3a1a; color: var(--gold); border: 1px solid var(--gold); padding: 10px 18px; cursor: pointer; border-radius: 5px; font-weight: bold; transition: 0.3s; }
-        .tab-btn.active { background: var(--gold); color: #3d2411; box-shadow: 0 0 10px var(--gold); }
+        .tab-btn { background: #5d3a1a; color: var(--gold); border: 1px solid var(--gold); padding: 10px 18px; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .tab-btn.active { background: var(--gold); color: #3d2411; }
 
-        /* Vitrine de Itens */
-        .vitrine {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 25px; max-width: 1200px; margin: 0 auto;
-        }
-
+        .vitrine { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto; }
         .item-card {
-            background: var(--paper);
-            background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
-            border: 2px solid #d2b48c;
-            border-radius: 8px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
-            transition: transform 0.2s;
+            background: var(--paper); background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+            border: 2px solid #d2b48c; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.6);
         }
-        .item-card:hover { transform: translateY(-5px); }
         .item-img { width: 100%; height: 200px; border-radius: 5px; object-fit: cover; border: 1px solid #3d2411; margin-bottom: 12px; }
-        .item-nome { font-size: 1.3rem; font-weight: bold; text-align: center; border-bottom: 2px solid #3d2411; margin-bottom: 10px; padding-bottom: 5px; }
-        .item-desc { font-size: 0.9rem; font-style: italic; margin-bottom: 12px; flex-grow: 1; line-height: 1.3; }
-        .item-bonus { background: rgba(139, 0, 0, 0.1); padding: 8px; border-radius: 4px; font-size: 0.85rem; color: #8b0000; font-weight: bold; margin-bottom: 12px; text-align: center; border: 1px solid rgba(139,0,0,0.2); }
+        .item-nome { font-size: 1.3rem; font-weight: bold; text-align: center; border-bottom: 2px solid #3d2411; margin-bottom: 10px; }
+        .tempo-item { color: #8b0000; font-weight: bold; text-align: center; font-family: monospace; margin-bottom: 10px; font-size: 1rem; }
+        .item-desc { font-size: 0.9rem; font-style: italic; margin-bottom: 12px; flex-grow: 1; }
         .item-preco { font-size: 1.2rem; font-weight: bold; color: #228b22; text-align: center; margin-bottom: 15px; }
+        .btn-comprar { background: #228b22; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 5px; font-weight: bold; width: 100%; }
 
-        .btn-comprar { background: #228b22; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 5px; font-weight: bold; width: 100%; font-size: 1rem; }
-        .btn-comprar:hover { background: #1a6b1a; }
-        
-        /* Modais */
         .modal {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: var(--paper); padding: 30px; border: 5px double #3d2411;
             box-shadow: 0 0 100px #000; z-index: 10000; display: none; width: 90%; max-width: 450px;
         }
-        input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #3d2411; box-sizing: border-box; background: #fffcf0; font-family: 'Georgia', serif; }
-        
-        .btn-mestre-float { position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.7); color: white; border: 1px solid var(--gold); border-radius: 50%; width: 50px; height: 50px; cursor: pointer; z-index: 999; font-size: 1.2rem; }
-
-        #loginLoja { text-align: center; margin-top: 100px; }
+        input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #3d2411; box-sizing: border-box; }
+        .btn-mestre-float { position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.7); color: white; border: 1px solid var(--gold); border-radius: 50%; width: 50px; height: 50px; cursor: pointer; z-index: 999; }
     </style>
 </head>
 <body>
 
-    <div id="loginLoja">
-        <div style="background: var(--paper); display: inline-block; padding: 40px; border: 3px solid #3d2411; border-radius: 10px; box-shadow: 0 0 30px rgba(0,0,0,0.5);">
-            <h2 style="margin-top:0">🛒 Mercado de Itens</h2>
-            <p>Quem ousa entrar no mercado hoje?</p>
-            <input type="text" id="compradorNome" placeholder="Nome do Personagem" style="text-align:center"><br>
+    <div id="loginLoja" style="text-align: center; margin-top: 100px;">
+        <div style="background: var(--paper); display: inline-block; padding: 40px; border: 3px solid #3d2411; border-radius: 10px;">
+            <h2>🛒 Mercado de Itens</h2>
+            <input type="text" id="compradorNome" placeholder="Nome do Personagem"><br>
             <button class="btn-comprar" style="margin-top: 15px;" onclick="entrarLoja()">Entrar na Loja</button>
         </div>
     </div>
 
     <div id="lojaConteudo" style="display: none;">
         <h1>🛒 Mercado de Itens</h1>
-        <p style="text-align: center; color: var(--gold); font-size: 1.2rem; margin-bottom: 30px;">Boas compras, <span id="nomeUser" style="text-decoration: underline;"></span>!</p>
-        
-        <div class="categorias">
+        <p style="text-align: center; color: var(--gold);">Bem-vindo, <span id="nomeUser"></span>!</p>
+        <div class="categorias" id="botoesFiltro">
             <button class="tab-btn active" onclick="filtrar('todos')">Tudo</button>
             <button class="tab-btn" onclick="filtrar('arma')">⚔️ Armas</button>
             <button class="tab-btn" onclick="filtrar('armadura')">🛡️ Armaduras</button>
             <button class="tab-btn" onclick="filtrar('pocao')">🧪 Poções</button>
-            <button class="tab-btn" onclick="filtrar('vestimenta')">🧥 Vestimentas</button>
         </div>
-
-        <div class="vitrine" id="vitrineItens">
-            </div>
-
+        <div class="vitrine" id="vitrineItens"></div>
         <button class="btn-mestre-float" onclick="abrirAdmin()">🛠️</button>
     </div>
 
     <div id="modalAdmin" class="modal">
-        <h3 style="text-align:center; margin-top:0;">🛠️ Adicionar Item ao Estoque</h3>
-        <input type="text" id="iNome" placeholder="Nome do Item (Ex: Espada de Ferro)">
+        <h3 style="text-align:center">🛠️ Novo Item Temporário</h3>
+        <input type="text" id="iNome" placeholder="Nome do Item">
         <select id="iCat">
-            <option value="arma">⚔️ Arma</option>
-            <option value="armadura">🛡️ Armadura</option>
-            <option value="pocao">🧪 Poção</option>
-            <option value="vestimenta">🧥 Vestimenta</option>
+            <option value="arma">Arma</option>
+            <option value="armadura">Armadura</option>
+            <option value="pocao">Poção</option>
         </select>
-        <input type="text" id="iImg" placeholder="URL da Imagem do Item">
-        <input type="text" id="iBonus" placeholder="Bônus (Ex: +10 de Defesa)">
-        <input type="number" id="iPreco" placeholder="Preço (Moedas)">
-        <textarea id="iDesc" rows="3" placeholder="Descrição curta do item..."></textarea>
-        
-        <button class="btn-comprar" onclick="salvarItem()">CADASTRAR ITEM</button>
-        <button class="btn-comprar" style="background:#8b0000; margin-top:10px;" onclick="document.getElementById('modalAdmin').style.display='none'">CANCELAR</button>
+        <input type="text" id="iImg" placeholder="Link da Imagem">
+        <input type="number" id="iHoras" placeholder="Tempo em Loja (Horas - Ex: 12)">
+        <input type="number" id="iPreco" placeholder="Preço">
+        <textarea id="iDesc" rows="3" placeholder="Descrição..."></textarea>
+        <button class="btn-comprar" onclick="salvarItem()">POSTAR ITEM</button>
+        <button class="btn-comprar" style="background:#8b0000; margin-top:10px;" onclick="document.getElementById('modalAdmin').style.display='none'">FECHAR</button>
     </div>
 
     <script>
-        // CONFIGURAÇÃO FIREBASE (Mesma da Dungeon)
         const firebaseConfig = {
             apiKey: "AIzaSyAsq9HAbLMReGnDX9jfRnChPF-R0f0rDfA",
             authDomain: "dungeon-hunters-15a90.firebaseapp.com",
@@ -128,8 +90,6 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-
-        // CONFIGURAÇÃO DISCORD WEBHOOK
         const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1473668984573526221/4jiFa-qnooNpJ8V9meFh38n7OdEJ3YVMDec2hoPY68S-dJ3C6Mgn_t8uwoyr2VSFgI-K";
 
         let usuario = "";
@@ -138,7 +98,7 @@
 
         function entrarLoja() {
             usuario = document.getElementById('compradorNome').value.trim();
-            if(!usuario) return alert("Por favor, aventureiro, diga seu nome!");
+            if(!usuario) return;
             document.getElementById('loginLoja').style.display = 'none';
             document.getElementById('lojaConteudo').style.display = 'block';
             document.getElementById('nomeUser').innerText = usuario;
@@ -146,81 +106,66 @@
         }
 
         function abrirAdmin() {
-            const senha = prompt("Acesso restrito ao Mercador:");
-            if(senha === "123") { // Senha padrão
+            if(prompt("Senha:") === "123") {
                 ehMestre = true;
                 document.getElementById('modalAdmin').style.display = 'block';
                 carregarItens();
-                alert("Acesso concedido!");
-            } else {
-                alert("Saia daqui! Apenas o mercador pode mexer no estoque.");
             }
         }
 
         function salvarItem() {
+            const horas = parseInt(document.getElementById('iHoras').value);
             const item = {
                 nome: document.getElementById('iNome').value,
                 cat: document.getElementById('iCat').value,
                 img: document.getElementById('iImg').value || "https://via.placeholder.com/200",
-                bonus: document.getElementById('iBonus').value,
                 preco: document.getElementById('iPreco').value,
-                desc: document.getElementById('iDesc').value
+                desc: document.getElementById('iDesc').value,
+                expiraEm: Date.now() + (horas * 60 * 60 * 1000)
             };
+            db.ref('loja').push(item).then(() => document.getElementById('modalAdmin').style.display = 'none');
+        }
 
-            if(!item.nome || !item.preco) return alert("Nome e Preço são obrigatórios!");
-
-            db.ref('loja').push(item).then(() => {
-                alert("Novo item exposto na vitrine!");
-                document.getElementById('modalAdmin').style.display = 'none';
-                // Limpar campos
-                document.getElementById('iNome').value = "";
-                document.getElementById('iPreco').value = "";
-                document.getElementById('iDesc').value = "";
+        function atualizarRelogios() {
+            const agora = Date.now();
+            document.querySelectorAll('.cronometro-loja').forEach(el => {
+                const expira = parseInt(el.dataset.expira);
+                const diff = expira - agora;
+                if(diff <= 0) {
+                    el.innerText = "ESGOTADO";
+                    el.closest('.item-card').querySelector('.btn-comprar').disabled = true;
+                    el.closest('.item-card').querySelector('.btn-comprar').style.background = "gray";
+                } else {
+                    const h = Math.floor(diff / 3600000);
+                    const m = Math.floor((diff % 3600000) / 60000);
+                    const s = Math.floor((diff % 60000) / 1000);
+                    el.innerText = `${h}h ${m}m ${s}s`;
+                }
             });
         }
+        setInterval(atualizarRelogios, 1000);
 
-        function comprar(nomeItem, preco) {
-            if(confirm(`Confirmar compra de ${nomeItem} por ${preco} moedas?`)) {
-                // Envio para o Discord
-                const payload = {
+        function comprar(nome, preco) {
+            if(!confirm(`Comprar ${nome}?`)) return;
+            fetch(DISCORD_WEBHOOK, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
                     embeds: [{
-                        title: "🛒 Novo Pedido de Compra",
-                        color: 3066993, // Cor Verde Água
+                        title: "🛒 Compra Realizada",
+                        color: 3066993,
                         fields: [
                             { name: "👤 Jogador", value: usuario, inline: true },
-                            { name: "📦 Item Adquirido", value: nomeItem, inline: true },
-                            { name: "💰 Valor", value: preco + " moedas", inline: true },
-                            { name: "📋 Status", value: "Favor realizar o desconto no UnbelievaBoat." }
-                        ],
-                        footer: { text: "Dungeon Hunters Store" },
-                        timestamp: new Date().toISOString()
+                            { name: "📦 Item", value: nome, inline: true },
+                            { name: "💰 Preço", value: preco + " moedas", inline: true }
+                        ]
                     }]
-                };
-
-                fetch(DISCORD_WEBHOOK, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                }).then(() => {
-                    alert(`Pedido enviado para o Discord!\nO mestre irá descontar ${preco} moedas do seu saldo no UnbelievaBoat e entregar o item.`);
-                }).catch(err => {
-                    alert("Erro ao conectar com o Discord. Avise o mestre!");
-                    console.error(err);
-                });
-            }
-        }
-
-        function removerItem(id) {
-            if(confirm("Deseja retirar este item permanentemente do estoque?")) {
-                db.ref('loja/' + id).remove();
-            }
+                })
+            }).then(() => alert("Pedido enviado ao Discord!"));
         }
 
         function filtrar(c) {
             filtroAtual = c;
-            // Atualizar botões visuais
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
             carregarItens();
         }
 
@@ -229,28 +174,23 @@
                 let html = "";
                 snap.forEach(child => {
                     const i = child.val();
-                    const id = child.key;
-
-                    // Filtro de Categoria
                     if(filtroAtual !== 'todos' && i.cat !== filtroAtual) return;
-
-                    let btnAdmin = ehMestre ? `<button onclick="removerItem('${id}')" style="background:#8b0000; color:white; border:none; padding:8px; margin-top:10px; cursor:pointer; width:100%; border-radius:4px; font-weight:bold;">🗑️ EXCLUIR ITEM</button>` : "";
-
+                    let btnMestre = ehMestre ? `<button onclick="db.ref('loja/${child.key}').remove()" style="background:#8b0000; color:white; border:none; margin-top:5px; cursor:pointer; width:100%; border-radius:4px;">🗑️ Remover</button>` : "";
+                    
                     html += `
                     <div class="item-card">
-                        <img src="${i.img}" class="item-img" onerror="this.src='https://via.placeholder.com/200?text=Sem+Imagem'">
+                        <img src="${i.img}" class="item-img">
                         <div class="item-nome">${i.nome}</div>
+                        <div class="tempo-item">⏳ <span class="cronometro-loja" data-expira="${i.expiraEm}">--:--:--</span></div>
                         <div class="item-desc">${i.desc}</div>
-                        <div class="item-bonus">✨ ${i.bonus}</div>
                         <div class="item-preco">💰 ${i.preco} Liras</div>
                         <button class="btn-comprar" onclick="comprar('${i.nome}', '${i.preco}')">COMPRAR</button>
-                        ${btnAdmin}
+                        ${btnMestre}
                     </div>`;
                 });
-                document.getElementById('vitrineItens').innerHTML = html || "<p style='text-align:center; color:white; grid-column: 1/-1;'>O estoque está vazio no momento.</p>";
+                document.getElementById('vitrineItens').innerHTML = html || "<p style='color:white; text-align:center;'>Loja vazia.</p>";
             });
         }
     </script>
 </body>
-    </html>
-                
+</html>
