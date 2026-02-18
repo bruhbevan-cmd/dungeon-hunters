@@ -12,106 +12,81 @@
             background-image: url('https://www.transparenttextures.com/patterns/dark-wood.png');
             color: #3d2411;
             font-family: 'Georgia', serif;
-            margin: 0;
-            padding: 20px;
-            padding-bottom: 150px;
+            margin: 0; padding: 20px; padding-bottom: 100px;
         }
-        h1 { text-align: center; color: #f3e5ab; text-shadow: 2px 2px 4px #000; font-size: 2.5rem; }
+        h1 { text-align: center; color: #f3e5ab; text-shadow: 2px 2px 4px #000; font-size: 2.2rem; }
         
         /* Mural */
-        .mural {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 25px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+        .mural { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto; }
 
         .pergaminho {
             background: #f4e4bc;
             background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
-            padding: 25px;
-            border-radius: 2px;
-            box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
-            border: 1px solid #d2b48c;
-            position: relative;
-            display: flex;
-            flex-direction: column;
+            padding: 25px; border-radius: 2px; box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+            border: 1px solid #d2b48c; position: relative; display: flex; flex-direction: column;
         }
 
         .tag { position: absolute; top: 10px; right: 10px; padding: 5px 10px; border-radius: 3px; font-size: 0.7rem; font-weight: bold; color: white; }
-        .tipo-combate { background: #8b0000; }
-        .tipo-coleta { background: #228b22; }
-        .tipo-expedicao { background: #4169e1; }
+        .tipo-combate { background: #8b0000; } .tipo-coleta { background: #228b22; } .tipo-expedicao { background: #4169e1; }
 
         .missao-titulo { font-size: 1.4rem; border-bottom: 2px solid #3d2411; margin-bottom: 12px; font-weight: bold; text-align: center; }
-        .desc { font-style: italic; margin-top: 15px; flex-grow: 1; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; }
+        .desc { font-style: italic; margin-top: 15px; flex-grow: 1; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; font-size: 0.9rem; }
         .recompensa { margin-top: 15px; padding: 10px; border: 1px dashed #3d2411; text-align: center; font-weight: bold; color: #228b22; }
-
-        /* Painéis Flutuantes */
-        .modal-mestre {
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: #f3e5ab;
-            padding: 20px;
-            border: 4px double #3d2411;
-            box-shadow: 0 0 100px #000;
-            z-index: 10000;
-            display: none;
-            width: 90%;
-            max-width: 400px;
-        }
-
-        input, textarea, select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #3d2411; box-sizing: border-box; }
         
-        .btn { background: #5d3a1a; color: #f4e4bc; border: none; padding: 12px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; }
+        .status-aceito { background: #d2b48c; color: #5d3a1a; padding: 8px; text-align: center; font-weight: bold; margin-top: 10px; border-radius: 4px; font-size: 0.8rem; }
 
-        /* Botão Mestre Visível para teste */
-        .btn-abrir-login {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.5);
-            color: white;
-            border: 1px solid #f3e5ab;
-            border-radius: 50%;
-            width: 50px; height: 50px;
-            cursor: pointer;
-            z-index: 999;
+        /* Modais */
+        .modal {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #f3e5ab; padding: 25px; border: 4px double #3d2411;
+            box-shadow: 0 0 100px #000; z-index: 10000; display: none; width: 90%; max-width: 400px;
         }
+
+        input, textarea, select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #3d2411; box-sizing: border-box; background: #fffcf0; }
+        .btn { background: #5d3a1a; color: #f4e4bc; border: none; padding: 12px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; border-radius: 4px; }
+        
+        .btn-mestre-float { position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.6); color: white; border: 1px solid #f3e5ab; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; z-index: 999; }
     </style>
 </head>
 <body>
 
-    <h1>📜 Mural de Missões</h1>
+    <div id="loginScreen" style="text-align: center; margin-top: 100px;">
+        <div style="background: #f4e4bc; display: inline-block; padding: 30px; border: 2px solid #3d2411; border-radius: 8px;">
+            <h2>📜 Identifique-se Aventureiro</h2>
+            <input type="text" id="playerNome" placeholder="Seu Nome de Personagem" style="max-width: 250px;"><br>
+            <button class="btn" onclick="fazerLogin()">Entrar na Taverna</button>
+        </div>
+    </div>
 
-    <div class="mural" id="muralMissoes"></div>
+    <div id="muralScreen" style="display: none;">
+        <h1>📜 Mural de Missões</h1>
+        <p style="text-align: center; color: #f3e5ab;">Bem-vindo, <span id="nomeDisplay"></span>!</p>
+        <div class="mural" id="muralMissoes"></div>
+        <button class="btn-mestre-float" onclick="abrirPainelMestre()">🛠️</button>
+    </div>
 
-    <button class="btn-abrir-login" onclick="mostrarLogin()">🛠️</button>
-
-    <div id="modalLogin" class="modal-mestre">
-        <h3 style="text-align:center">Acesso do Mestre</h3>
-        <input type="password" id="senhaInput" placeholder="Digite a senha secreta">
-        <button class="btn" onclick="verificarSenha()">Entrar</button>
+    <div id="modalSenhaMestre" class="modal">
+        <h3 style="text-align:center">🛡️ Acesso do Mestre</h3>
+        <input type="password" id="senhaMestreInput" placeholder="Senha Secreta">
+        <button class="btn" onclick="confirmarMestre()">Validar</button>
         <button class="btn" style="background:#8b0000" onclick="fecharModais()">Cancelar</button>
     </div>
 
-    <div id="painelCriar" class="modal-mestre" style="max-width: 500px;">
-        <h3 style="text-align:center">📜 Nova Missão</h3>
-        <input type="text" id="qTitulo" placeholder="Título">
+    <div id="painelCriar" class="modal" style="max-width: 500px;">
+        <h3 style="text-align:center">➕ Nova Missão</h3>
+        <input type="text" id="qTitulo" placeholder="Título da Missão">
         <select id="qTipo">
-            <option value="combate">Combate</option>
-            <option value="coleta">Coleta</option>
-            <option value="expedicao">Expedição</option>
+            <option value="combate">⚔️ Combate</option>
+            <option value="coleta">🌿 Coleta</option>
+            <option value="expedicao">🗺️ Expedição</option>
         </select>
-        <input type="text" id="qLocal" placeholder="Local">
-        <input type="text" id="qTempo" placeholder="Prazo">
+        <input type="text" id="qLocal" placeholder="Localização">
+        <input type="text" id="qTempo" placeholder="Prazo/Tempo">
         <input type="text" id="qRecompensa" placeholder="Recompensa">
-        <input type="text" id="qRequisito" placeholder="Requisito">
-        <textarea id="qDesc" rows="4" placeholder="Descrição..."></textarea>
-        <button class="btn" style="background:#228b22" onclick="postar()">Pregar no Mural</button>
-        <button class="btn" style="background:#8b0000" onclick="fecharModais()">Sair</button>
+        <input type="text" id="qRequisito" placeholder="Requisitos">
+        <textarea id="qDesc" rows="4" placeholder="Detalhes da missão..."></textarea>
+        <button class="btn" style="background:#228b22" onclick="salvarMissao()">Pregar no Mural</button>
+        <button class="btn" style="background:#8b0000" onclick="fecharModais()">Fechar</button>
     </div>
 
     <script>
@@ -127,52 +102,42 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let eMestre = false;
-        const SENHA_MESTRE = "123"; // <--- COLOQUE SUA SENHA AQUI
+        let usuarioAtual = "";
+        let ehMestre = false;
+        const SENHA_REAL = "123"; // <--- Altere sua senha de Mestre aqui!
 
-        function mostrarLogin() {
-            document.getElementById('modalLogin').style.display = 'block';
+        function fazerLogin() {
+            usuarioAtual = document.getElementById('playerNome').value.trim();
+            if(!usuarioAtual) return alert("Digite seu nome!");
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('muralScreen').style.display = 'block';
+            document.getElementById('nomeDisplay').innerText = usuarioAtual;
+            renderizarMural();
         }
 
-        function fecharModais() {
-            document.getElementById('modalLogin').style.display = 'none';
-            document.getElementById('painelCriar').style.display = 'none';
-        }
-
-        function verificarSenha() {
-            const senha = document.getElementById('senhaInput').value;
-            if(senha === SENHA_MESTRE) {
-                eMestre = true;
-                fecharModais();
+        function abrirPainelMestre() {
+            if(ehMestre) {
                 document.getElementById('painelCriar').style.display = 'block';
-                renderizar();
-                alert("Bem-vindo, Mestre!");
             } else {
-                alert("Senha errada!");
+                document.getElementById('modalSenhaMestre').style.display = 'block';
             }
         }
 
-        function renderizar() {
-            db.ref('missoes').on('value', snap => {
-                let html = "";
-                snap.forEach(child => {
-                    const m = child.val();
-                    let btnExcluir = eMestre ? `<button onclick="remover('${child.key}')" style="background:#8b0000; color:white; border:none; padding:8px; margin-top:10px; cursor:pointer; width:100%;">🗑️ Remover</button>` : "";
-                    
-                    html += `<div class="pergaminho">
-                        <div class="tag tipo-${m.tipo}">${m.tipo}</div>
-                        <div class="missao-titulo">${m.titulo}</div>
-                        <div class="desc"><strong>Onde:</strong> ${m.local}<br><strong>Prazo:</strong> ${m.tempo}<br><strong>Obs:</strong> ${m.requisito}<br><br>${m.desc}</div>
-                        <div class="recompensa">💰 ${m.recompensa}</div>
-                        <button class="btn" onclick="alert('Aceito!')">Aceitar Missão</button>
-                        ${btnExcluir}
-                    </div>`;
-                });
-                document.getElementById('muralMissoes').innerHTML = html || "<p style='color:white; text-align:center'>Nenhuma missão no mural.</p>";
-            });
+        function confirmarMestre() {
+            if(document.getElementById('senhaMestreInput').value === SENHA_REAL) {
+                ehMestre = true;
+                fecharModais();
+                document.getElementById('painelCriar').style.display = 'block';
+                renderizarMural();
+            } else { alert("Senha incorreta!"); }
         }
 
-        function postar() {
+        function fecharModais() {
+            document.getElementById('modalSenhaMestre').style.display = 'none';
+            document.getElementById('painelCriar').style.display = 'none';
+        }
+
+        function salvarMissao() {
             const m = {
                 titulo: document.getElementById('qTitulo').value,
                 tipo: document.getElementById('qTipo').value,
@@ -180,20 +145,57 @@
                 tempo: document.getElementById('qTempo').value,
                 recompensa: document.getElementById('qRecompensa').value,
                 requisito: document.getElementById('qRequisito').value,
-                desc: document.getElementById('qDesc').value
+                desc: document.getElementById('qDesc').value,
+                aceitoPor: ""
             };
             if(!m.titulo) return;
-            db.ref('missoes').push(m).then(() => {
-                fecharModais();
-                alert("Publicado!");
+            db.ref('missoes').push(m).then(() => { fecharModais(); alert("Missão Pregada!"); });
+        }
+
+        function aceitarMissao(id, titulo) {
+            if(confirm("Deseja aceitar a missão: " + titulo + "?")) {
+                db.ref('missoes/' + id).update({ aceitoPor: usuarioAtual });
+            }
+        }
+
+        function removerMissao(id) {
+            if(confirm("Mestre, deseja remover permanentemente este pergaminho?")) {
+                db.ref('missoes/' + id).remove();
+            }
+        }
+
+        function renderizarMural() {
+            db.ref('missoes').on('value', snap => {
+                let html = "";
+                snap.forEach(child => {
+                    const m = child.val();
+                    const id = child.key;
+                    
+                    let statusHtml = "";
+                    if(m.aceitoPor) {
+                        statusHtml = `<div class="status-aceito">📌 Aceita por: ${m.aceitoPor}</div>`;
+                    } else {
+                        statusHtml = `<button class="btn" onclick="aceitarMissao('${id}', '${m.titulo}')">Aceitar Missão</button>`;
+                    }
+
+                    let btnMestre = ehMestre ? `<button onclick="removerMissao('${id}')" style="background:#8b0000; color:white; border:none; padding:8px; margin-top:10px; cursor:pointer; width:100%; border-radius:4px;">🗑️ Remover Missão (Mestre)</button>` : "";
+
+                    html += `
+                    <div class="pergaminho">
+                        <div class="tag tipo-${m.tipo}">${m.tipo}</div>
+                        <div class="missao-titulo">${m.titulo}</div>
+                        <div class="info-row"><strong>📍 Local:</strong> ${m.local}</div>
+                        <div class="info-row"><strong>⏳ Tempo:</strong> ${m.tempo}</div>
+                        <div class="info-row"><strong>📜 Rank:</strong> ${m.requisito}</div>
+                        <div class="desc">${m.desc}</div>
+                        <div class="recompensa">💰 ${m.recompensa}</div>
+                        ${statusHtml}
+                        ${btnMestre}
+                    </div>`;
+                });
+                document.getElementById('muralMissoes').innerHTML = html || "<p style='text-align:center; color:#f4e4bc;'>Nenhuma missão disponível no momento.</p>";
             });
         }
-
-        function remover(id) {
-            if(confirm("Apagar missão?")) db.ref('missoes/' + id).remove();
-        }
-
-        renderizar();
     </script>
 </body>
 </html>
